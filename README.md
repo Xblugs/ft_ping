@@ -1,6 +1,8 @@
 Subject Version 5
 
-Ping is the name of a command that allows to test the accessibility of another machine through the IP network. The command measures also the time taken to receive a response, called round-trip time.
+## Description
+
+Ping (**P**acket **IN**ternet **G**roper) is the name of a command that allows to test the accessibility of another machine through the IP network. The command measures also the time taken to receive a response, called round-trip time.
 
 ![exemple of a ping command](ping.png)
 
@@ -24,7 +26,8 @@ Done on Debian 13 (Trixie) with inetutils 2.6
 - All the prinf familly functions are allowed
 - Usage of excve, ping, fcntl, poll and ppoll is strictly forbidden.
 
-Bonus Part
+
+## Bonus Part
 
 Manage additionals flags such as:
 
@@ -63,6 +66,61 @@ Note that some host block or ignore such paquets because IP timestamp is an old 
 - two flags corresponding to the same feature (eg: -t and -type) are not considered as two bonuses  
 `-t or -type` is used to send type packets.
 
+
+## Usage
+
+**ping [option ...] host ...**
+
+A flag start with a '-' or '--', it can be in any position
+
+### A simple ping command:  
+```shell
+>ping 127.0.0.1
+PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
+64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.024 ms
+64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.041 ms
+64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.025 ms
+^C
+--- 127.0.0.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2043ms
+round-trip min/avg/max/stddev = 0.024/0.030/0.041/0.007 ms
+	exit code = 0
+```
+
+
+### In the case a given flag is **not** recognized:
+```shell
+>ping -z 127.0.0.1
+ping: invalid option -- 'z'
+Try 'ping --help' or 'ping --usage' for more information.
+	exit code = 64
+```
+
+
+### Multiple hostnames
+```shell
+>ping 127.0.0.1 www.google.com -c5
+	exit code = 0
+```
+This would ping `127.0.0.1` (-c5 tells ping to stop after 5 requests) then proceed with `www.google.com`
+
+### Call without argument:
+```shell
+>ping
+ping: missing host operand
+Try 'ping --help' or 'ping --usage' for more information.
+	exit code = 64
+```
+
+### Invalid hostname:
+```shell
+>ping www.test.123
+ping: unknown host
+	exit code = 1
+```
+
+## Misc
+
 Install wireshark?
 
 Sending:
@@ -75,6 +133,8 @@ Receiving:
 (We see ALL the ICMP requests here)
 Identify which request concern us (type 0 = echo answer)
 Verify which PID is concerned
+Verify checksum
 Check the timestamp to calculate the round-trip time
 Check ttl
 Report result
+

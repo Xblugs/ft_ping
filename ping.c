@@ -10,11 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-/*
-	Lots of include to include here
-
-*/
-
 #include "ping.h"
 
 /*
@@ -28,21 +23,27 @@
 
 int	main(int ac, char** av)
 {
-	if (ac > 2)
-		recover_flags(ac, av);
+	if (ac == 1)
+	{
+		printf("%s", MSG_MISS_HOST);
+		return (64);
+	}
+	t_ping data;
+	recover_flags(ac, av, data);
+
 	return (0);
 }
 
 /*
 	[-?, -h, --help] don't need to be stored, execute directly
 */
-int recover_flags(int ac, char** av)
+int recover_flags(int ac, char** av, t_ping data)
 {
 	int	index = 0;
+
 	while (index <= ac)
 	{
-		/* code */
+		// process
 	}
-
 	return (0);
 }
