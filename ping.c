@@ -12,31 +12,25 @@
 
 #include "ping.h"
 
-/*
-	put prototypes in a header somewhere later
-	and make a struct to handle the data
-
-	todo: think about the structs needed
-	req: flags, socket_id, message structure, misc values such as icmp_seq
-		timestamp and so on
-*/
-
 int	main(int ac, char** av)
 {
+	char ret = 0;
+
 	if (ac == 1)
 	{
 		printf("%s", MSG_MISS_HOST);
 		return (64);
 	}
 	t_ping data = (t_ping){0};
-	ping_init(ac, av, &data);
+	ret = ping_init(ac, av, &data);
 
-	return (0);
+	return (ret);
 }
 
 int	ping_init(int ac, char **av, t_ping *data)
 {
-	arg_parse(ac, av, data);
+	if(arg_parse(ac, av, data))
+		return (1);
 	// data->header.code = 0;
 	data->header.type = ECHO_REQUEST;
 	return (0);
@@ -47,8 +41,10 @@ int	ping_init(int ac, char **av, t_ping *data)
 */
 int arg_parse(int ac, char** av, t_ping *data)
 {
-	(void) data;
+	(void)	data;
+	char	ret;
 
+	// '-' and '--' are valid inputs
 	for (int i = 1; i < ac; i++)
 	{
 		if (av[i][0] != '-')
@@ -56,7 +52,14 @@ int arg_parse(int ac, char** av, t_ping *data)
 			data->host_count++;
 			continue;
 		}
+		if (strlen(av[i]) == 1)
+			continue;
+		ret = flag_wrapper(av[i], data);
+
 		printf("%s\n", av[i]);
+		printf("flag = %#x\n", data->flags);
+		if (ret)
+			break;
 	}
 	printf("%d\n", data->host_count);
 	printf("%d\n", data->header.type);

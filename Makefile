@@ -3,7 +3,7 @@ CC			:= cc
 CFLAGS		:= -Wextra -Wall -Werror -O3
 LIB			:=
 
-SRC			:= ping.c
+SRC			:= ping.c ping_flags.c
 
 SOURCES		:= $(SRC)
 
