@@ -2,9 +2,10 @@ Subject Version 5
 
 ## Description
 
-Ping (**P**acket **IN**ternet **G**roper) is the name of a command that allows to test the accessibility of another machine through the IP network. The command measures also the time taken to receive a response, called round-trip time.
+[Ping](https://en.wikipedia.org/wiki/Ping_(networking_utility)) (**P**acket **IN**ternet **G**roper) is the name of a command that allows to test the accessibility of another machine through the IP network. The command measures also the time taken to receive a response, called round-trip time.
 
-![exemple of a ping command](ping.png)
+![exemple of a ping command](readme_assets/ping.png)
+> exemple of a ping command
 
 This project must be done in a Debian virtual machine (version >= 7.0)  
 Done on Debian 13 (Trixie) with inetutils 2.6
@@ -17,7 +18,10 @@ Done on Debian 13 (Trixie) with inetutils 2.6
 
 - Manage the -v and -? options  
 -v = Verbose output. ICMP packets other than ECHO_RESPONSE that are received are listed.  
--? is an equivalent to -h (--help) in some build to show the help command  
+-? is an equivalent to -h (--help) in some build to show the help command 
+
+![exemple of a ping command with -v](readme_assets/ping_v_flag_exemple.png)  
+>*exemple of diagnostic with -v enabled*
 
 - Manage simple IPv4 (address/hostname) as parameters
 - Manage the [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) without doing the DNS resolution in the packet return
@@ -26,10 +30,12 @@ Done on Debian 13 (Trixie) with inetutils 2.6
 - All the prinf familly functions are allowed
 - Usage of excve, ping, fcntl, poll and ppoll is strictly forbidden.
 
+Ping send ICMP packets (different protocol than TCP/UDP) ~
+[ICMP Wikipedia page](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)
 
 ## Bonus Part
 
-Manage additionals flags such as:
+Manage additionals flags such as: ([inetutils-ping man page](https://manpages.debian.org/trixie/inetutils-ping/ping.1.en.html))
 
 - `-f` = [Flood ping](https://en.wikipedia.org/wiki/Ping_flood). Outputs packets as fast as they come back or one hundred times per second, whichever is more. For every ECHO_REQUEST sent a period ``.'' is printed, while for every ECHO_REPLY received a backspace is printed. This provides a rapid display of how many packets are being dropped. Only the super-user may use this option. This can be very hard on a network and should be used with caution.
 
@@ -40,7 +46,7 @@ Manage additionals flags such as:
 
 - `-W <timeout>` = time to wait for response (timeout per replies)
 
-- `-p <pattern>` = You may specify up to 16 ``pad'' bytes to fill out the packet you send. This is useful for diagnosing data-dependent problems in a network. For example, "-p ff" will cause the sent packet to be filled with all ones.
+- `-p <pattern>` = You may specify up to 16 "pad" bytes to fill out the packet you send. This is useful for diagnosing data-dependent problems in a network. For example, "-p ff" will cause the sent packet to be filled with all ones.
 
 - `-r` = Bypass the normal routing tables and send directly to a host on an attached network. If the host is not on a directly-attached network, an error is returned. This option can be used to ping a local host through an interface that has no route through it (e.g., after the interface was dropped by routed(8)).
 
@@ -55,7 +61,6 @@ Note that some host block or ignore such paquets because IP timestamp is an old 
 
 - `--ttl` = define the time to live
 
-*Some descriptions are coming the debian [man](https://manpages.debian.org/stretch/inetutils-ping/ping.1.en.html) pages, some from elsewhere as not all those parameters seems to exist on every build
 
 **Note:**
 - the flags -V, -usage, -echo are not considered as bonus  

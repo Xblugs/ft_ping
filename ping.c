@@ -28,22 +28,38 @@ int	main(int ac, char** av)
 		printf("%s", MSG_MISS_HOST);
 		return (64);
 	}
-	t_ping data;
-	recover_flags(ac, av, data);
+	t_ping data = (t_ping){0};
+	ping_init(ac, av, &data);
 
+	return (0);
+}
+
+int	ping_init(int ac, char **av, t_ping *data)
+{
+	arg_parse(ac, av, data);
+	// data->header.code = 0;
+	data->header.type = ECHO_REQUEST;
 	return (0);
 }
 
 /*
 	[-?, -h, --help] don't need to be stored, execute directly
 */
-int recover_flags(int ac, char** av, t_ping data)
+int arg_parse(int ac, char** av, t_ping *data)
 {
-	int	index = 0;
+	(void) data;
 
-	while (index <= ac)
+	for (int i = 1; i < ac; i++)
 	{
-		// process
+		if (av[i][0] != '-')
+		{
+			data->host_count++;
+			continue;
+		}
+		printf("%s\n", av[i]);
 	}
+	printf("%d\n", data->host_count);
+	printf("%d\n", data->header.type);
+	
 	return (0);
 }
