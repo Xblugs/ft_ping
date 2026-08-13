@@ -147,6 +147,10 @@ Argument and their values can be written as `ping hostname -w 2` or `ping hostna
 `ping hostname -fw2` is valid, '-f' does not require any value  
 `ping hostname -w2c1` is invalid, '-w' wait a value, you can't input another flag here, you should instead write them as separate arguments.  
 
+⚠️ Word type argument accept only their parameter as the next argument ⚠️  
+`ping www.google.com --count 3`	**OK**  
+`ping www.google.com --count3` **Unrecognized option** 
+
 ## Delete later ig
 
 Install wireshark?

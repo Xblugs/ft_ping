@@ -14,22 +14,22 @@
 
 int	main(int ac, char** av)
 {
-	char ret = 0;
-
 	if (ac == 1)
 	{
 		printf("%s", MSG_MISS_HOST);
 		return (64);
 	}
 	t_ping data = (t_ping){0};
-	ret = ping_init(ac, av, &data);
+	data.ret = ping_init(&ac, av, &data);
 
-	return (ret);
+	return (data.ret);
 }
 
-int	ping_init(int ac, char **av, t_ping *data)
+int	ping_init(int *ac, char **av, t_ping *data)
 {
-	if(arg_parse(ac, av, data))
+	data->ac = ac;
+	data->av = av;
+	if(arg_parse(data))
 		return (1);
 	// data->header.code = 0;
 	data->header.type = ECHO_REQUEST;
@@ -39,30 +39,20 @@ int	ping_init(int ac, char **av, t_ping *data)
 /*
 	[-?, -h, --help] don't need to be stored, execute directly
 */
-int arg_parse(int ac, char** av, t_ping *data)
+int arg_parse(t_ping *data)
 {
-	(void)	data;
-	char	ret;
-
 	// '-' and '--' are valid inputs
-	for (int i = 1; i < ac; i++)
+	for (int i = 1; i < *data->ac; i++)
 	{
-		if (av[i][0] != '-')
-		{
-			data->host_count++;
+		if (data->av[i][0] != '-' || strlen(data->av[i]) == 1)
 			continue;
-		}
-		if (strlen(av[i]) == 1)
-			continue;
-		ret = flag_wrapper(av[i], data);
+		flag_wrapper(data->av[i], data);
 
-		printf("%s\n", av[i]);
-		printf("flag = %#x\n", data->flags);
-		if (ret)
+		if (DEBUG)
+			printf("%s\nflag = %#x\n", data->av[i], data->flags);
+		if (data->ret)
 			break;
 	}
-	printf("%d\n", data->host_count);
-	printf("%d\n", data->header.type);
 	
 	return (0);
 }

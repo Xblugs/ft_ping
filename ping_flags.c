@@ -13,146 +13,164 @@
 #include "ping.h"
 
 // function in this file
-int	flag_wrapper(char *flag, t_ping *data);
+void		flag_wrapper(char *flag, t_ping *data);
 
 // i.e --help
-static int	word_flag(char *flag, t_ping *data);
-static int	word_flag_am(char *flag, t_ping *data);
-static int	word_flag_nz(char *flag, t_ping *data);
-static int	word_flag_else(char *flag, t_ping *data);
+static void	word_flag(char *flag, t_ping *data);
+static void	word_flag_am(char *flag, t_ping *data);
+static void	word_flag_nz(char *flag, t_ping *data);
+static void	word_flag_else(char *flag, t_ping *data);
 
 // i.e -f
-static int	single_flag(char *flag, t_ping *data);
-static int	single_flag_am(char flag, t_ping *data);
-static int	single_flag_nz(char flag, t_ping *data);
-static int	single_flag_else(char flag, t_ping *data);
+static void	single_flag(char *flag, t_ping *data);
+static void	single_flag_am(char *flag, t_ping *data);
+static void	single_flag_nz(char *flag, t_ping *data);
+static void	single_flag_else(char *flag, t_ping *data);
 
 static int	unknown_flag(char *flag, char f);
 
 /*
 	This function exist because i wanted to put everything in static
 */
-int	flag_wrapper(char *flag, t_ping *data)
+void	flag_wrapper(char *flag, t_ping *data)
 {
 	if (flag[1] == '-')
-		return (word_flag(flag, data));
+		word_flag(flag, data);
 	else
-		return (single_flag(flag, data));
+		single_flag(flag, data);
 }
 
 /*
 	Flag are batched together in an attempt to minimize the comparisons
 */
-static int	word_flag(char *flag, t_ping *data)
+static void	word_flag(char *flag, t_ping *data)
 {
 	if (flag[2] >= 'a' && flag[2] <= 'm')
-		return (word_flag_am(flag, data));
+		word_flag_am(flag, data);
 	else if (flag[2] >= 'n' && flag[2] <= 'z')
-		return (word_flag_nz(flag, data));
+		word_flag_nz(flag, data);
 	else
-		return (word_flag_else(flag, data));
+		word_flag_else(flag, data);
 }
 
-static int	word_flag_am(char *flag, t_ping *data)
+static void	word_flag_am(char *flag, t_ping *data)
 {
-	if (strncmp(flag, "--i", 3))
+	if (strncmp(flag, "--i", 3) == 0)
 	{
-		if (strcmp(flag, "--ignore-routing"))
+		if (strcmp(flag, "--ignore-routing") == 0)
 			data->flags |= IGN_ROUTE_FLAG;
-		else if (strncmp(flag, "--ip-timestamp", 15))
+		else if (strncmp(flag, "--ip-timestamp", 15) == 0)
 			data->flags |= TIMESTAMP_FLAG;
 	}
-	else if (strcmp(flag, "--flood"))
+	else if (strncmp(flag, "--count", 8) == 0)
+		data->flags |= COUNT_FLAG;
+	else if (strcmp(flag, "--flood") == 0)
 		data->flags |= FLOOD_FLAG;
-	else if (strcmp(flag, "--help"))
-		; // call 911 and return 1
-	else if (strncmp(flag, "--linger", 9))
+	else if (strcmp(flag, "--help") == 0)
+		// call help here
+		data->ret = 1;
+	else if (strncmp(flag, "--linger", 9) == 0)
 		data->flags |= WAIT_FLAG;
 	else
-		return (unknown_flag(flag, '\0'));
-	return (0);
+		data->ret = unknown_flag(flag, '\0');
 }
 
-static int	word_flag_nz(char *flag, t_ping *data)
+static void	word_flag_nz(char *flag, t_ping *data)
 {
-	if (strncmp(flag, "--t", 3))
+	if (strncmp(flag, "--t", 3) == 0)
 	{
-		if (strncmp(flag, "--timeout", 10))
+		if (strncmp(flag, "--timeout", 10) == 0)
 			data->flags |= STOP_FLAG;
-		else if (strncmp(flag, "--tos", 6))
+		else if (strncmp(flag, "--tos", 6) == 0)
 			data->flags |= TYPE_FLAG;
-		else if (strcmp(flag, "--ttl"))
+		else if (strcmp(flag, "--ttl") == 0)
 			data->flags |= TTL_FLAG;
 	}
-	else if (strncmp(flag, "--p", 3))
+	else if (strncmp(flag, "--p", 3) == 0)
 	{
-		if (strncmp(flag, "--pattern", 10))
+		if (strncmp(flag, "--pattern", 10) == 0)
 			data->flags |= PATTERN_FLAG;
-		else if (strncmp(flag, "--preload", 10))
+		else if (strncmp(flag, "--preload", 10) == 0)
 			data->flags |= LOAD_FLAG;
 	}
-	else if (strcmp(flag, "--numeric"))
+	else if (strcmp(flag, "--numeric") == 0)
 			data->flags |= NUMERIC_FLAG;
-	else if (strncmp(flag, "--size", 7))
+	else if (strncmp(flag, "--size", 7) == 0)
 		data->flags |= SIZE_FLAG;
-	else if (strcmp(flag, "--verbose"))
+	else if (strcmp(flag, "--verbose") == 0)
 		data->flags |= VERBOSE_FLAG;
 	else
-		return (unknown_flag(flag, '\0'));
-	return (0);
+		data->ret = unknown_flag(flag, '\0');
 }
 
-static int	word_flag_else(char *flag, t_ping *data)
+static void	word_flag_else(char *flag, t_ping *data)
 {
-	(void) data;
 	// implementation secrets
-	if (strcmp(flag, "--911"))
+	if (strcmp(flag, "--911") == 0)
 		; // call 911 and return 1
 	else
-		return (unknown_flag(flag, '\0'));
-	return (0);
+		data->ret = unknown_flag(flag, '\0');
 }
 
-static int	single_flag(char *flag, t_ping *data)
+/*
+	Flag are batched together in an attempt to minimize the comparisons
+	For single flags, multiples ones can be given at once
+*/
+static void	single_flag(char *flag, t_ping *data)
 {
 	int	i 	= 1;
-	int ret = 0;
 
 	while (flag[i] != 0)
 	{
 		if (flag[i] >= 'a' && flag[i] <= 'm')
-			ret = single_flag_am(flag[i], data);
+			single_flag_am(flag + i, data);
 		else if (flag[i] >= 'n' && flag[i] <= 'z')
-			ret = single_flag_nz(flag[i], data);
+			single_flag_nz(flag + i, data);
 		else
-			ret = single_flag_else(flag[i], data);
-		if (ret)
+			single_flag_else(flag + i, data);
+		if (data->ret > 0)
 			break;
-		i++;
+		else if (data->ret < 0)
+		{
+			i -= data->ret;
+			data->ret = 0;
+		}
+		else
+			i++;
 	}
-	return (ret);
 }
 
-static int	single_flag_am(char flag, t_ping *data)
+static void	single_flag_am(char *flag, t_ping *data)
 {
-	if (flag == 'f')
+	switch (flag[0])
+	{
+	case 'c': // require parameter
+		data->flags |= COUNT_FLAG;
+		break;
+
+	case 'f':
 		data->flags |= FLOOD_FLAG;
-	else if (flag == 'l')
+		break;
+
+	case 'l': // require parameter
 		data->flags |= LOAD_FLAG;
-	else
-		return (unknown_flag(NULL, flag));
-	return (0);
+		break;
+
+	default:
+		data->ret = unknown_flag(NULL, flag[0]);
+		break;
+	}
 }
 
-static int	single_flag_nz(char flag, t_ping *data)
+static void	single_flag_nz(char *flag, t_ping *data)
 {
-	switch (flag)
+	switch (flag[0])
 	{
 	case 'n':
 		data->flags |= NUMERIC_FLAG;
 		break;
 
-	case 'p':
+	case 'p': // require parameter
 		data->flags |= PATTERN_FLAG;
 		break;
 
@@ -160,19 +178,19 @@ static int	single_flag_nz(char flag, t_ping *data)
 		data->flags |= IGN_ROUTE_FLAG;
 		break;
 
-	case 's':
+	case 's': // require parameter
 		data->flags |= SIZE_FLAG;
 		break;
 
-	case 'T':
+	case 'T': // require parameter
 		data->flags |= TYPE_FLAG;
 		break;
 
-	case 'w':
+	case 'w': // require parameter
 		data->flags |= STOP_FLAG;
 		break;
 
-	case 'W':
+	case 'W': // require parameter
 		data->flags |= WAIT_FLAG;
 		break;
 
@@ -181,32 +199,30 @@ static int	single_flag_nz(char flag, t_ping *data)
 		break;
 
 	case 'V':
-		// exec version
+		// version printing here
+		data->ret = 1;
 		break;
 
 	default:
-		return (unknown_flag(NULL, flag));
+		data->ret = unknown_flag(NULL, flag[0]);
 		break;
 	}
-	// in progress
-	return (0);
 }
 
-static int	single_flag_else(char flag, t_ping *data)
+static void	single_flag_else(char *flag, t_ping *data)
 {
-	(void) data;
 	// implementation secrets
-	if (flag == '?')
-		; // call 911 and return 1
+	if (flag[0] == '?')
+		data->ret = 1; // call 911 and return 1
 	else
-		return (unknown_flag(NULL, flag));
-	return (0);
+		data->ret = unknown_flag(NULL, flag[0]);
 }
 
 /*
 	to be called on unknown flag to build the message
 		`-narnia`  --> invalid option 'a'
 		`--narnia` --> invalid option '--narnia'
+	Returns 1 (cancel code)
 */
 static int	unknown_flag(char *flag, char f)
 {
