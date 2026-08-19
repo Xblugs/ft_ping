@@ -33,7 +33,12 @@ int	ping_init(int *ac, char **av, t_ping *data)
 		return (1);
 	// data->header.code = 0;
 	data->header.type = ECHO_REQUEST;
-	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+
+	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
+	if (sockfd > 0)
+		data->flags |= ROOT_FLAG;
+	else
+		sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
 	printf("%d\n", sockfd);
 	if (sockfd < 0)
 	{
