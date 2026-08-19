@@ -2,9 +2,13 @@
 
 // echo "#include <netinet/ip_icmp.h>" | gcc -x c -E - | grep "netinet/ip_icmp.h"
 // libc equivalent of <linux/icmp.h>, gives the icmphdr struct
+#include <netdb.h>
+#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #define DEBUG			1
 
@@ -16,6 +20,8 @@
 #define ECHO_REPLY		0
 #define ECHO_REQUEST	8
 
+// 16 flags <==> short
+// upgrade to int if needed
 #define FLOOD_FLAG		1
 #define LOAD_FLAG		2
 #define NUMERIC_FLAG	4
@@ -29,22 +35,25 @@
 #define TIMESTAMP_FLAG	1024
 #define VERBOSE_FLAG	2048
 #define COUNT_FLAG		4096
+#define PLACEHOLDER0_FLAG		8192
+#define PLACEHOLDER1_FLAG		16384
+#define PLACEHOLDER2_FLAG		32768
 
 // Forward declaration to keep things ordered
 typedef struct s_ping t_ping;
 
 typedef struct s_ping
 {
-	short			flags;
-	short			count_val;
-	short			linger_val;
-	short			pattern_val;
-	short			preload_val;
-	short			size_val;
-	short			ttl;
-	short			timeout_val;
-	char			timestamp_val;
-	char			type_val;
+	unsigned short	flags;
+	unsigned short	count_val;
+	unsigned short	linger_val;
+	unsigned short	pattern_val;
+	unsigned short	preload_val;
+	unsigned short	size_val;
+	unsigned short	ttl;
+	unsigned short	timeout_val;
+	unsigned char	timestamp_val;
+	unsigned char	type_val;
 	int				*ac;
 	char			**av;
 	struct icmphdr	header;

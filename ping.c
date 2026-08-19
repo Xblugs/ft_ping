@@ -33,10 +33,25 @@ int	ping_init(int *ac, char **av, t_ping *data)
 		return (1);
 	// data->header.code = 0;
 	data->header.type = ECHO_REQUEST;
+	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	printf("%d\n", sockfd);
+	if (sockfd < 0)
+	{
+		printf("%s", MSG_MISS_HOST);
+		return (1);
+	}
+
+	// bind + accept?
+	// do stuff
+
+	// if closing a fd fail, pray your OS will do the cleanup
+	shutdown(sockfd, SHUT_RDWR);
+	close(sockfd);
 	return (0);
 }
 
 /*
+	Retrieve flags and their values
 	[-?, -h, --help] don't need to be stored, execute directly
 */
 int arg_parse(t_ping *data)

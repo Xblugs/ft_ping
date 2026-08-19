@@ -3,12 +3,16 @@ CC			:= cc
 CFLAGS		:= -Wextra -Wall -Werror -O3
 LIB			:=
 
+ifeq ($(MAKECMDGOALS), yolo)
+  $(eval CFLAGS=-O3)
+endif
+
 SRC			:= ping.c ping_flags.c
 
 SOURCES		:= $(SRC)
 
 NAME		:= ft_ping
-OBJ			 = $(addprefix $(OBJ_DIR)/,$(SOURCES:.c=.o))
+OBJ			 = $(addprefix $(OBJ_DIR)/,$(SOURCES:%.c=%.o))
 OBJ_DIR		:= obj
 
 all: $(NAME)
@@ -27,6 +31,9 @@ fclean: clean
 	@rm -rf $(NAME)
 
 re: fclean all
+
+yolo: $(OBJ) # ignore warnings
+	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) $(LIB)
 
 .PHONY: all clean fclean re
 

@@ -31,6 +31,11 @@ static int	unknown_flag(char *flag, char f);
 
 /*
 	This function exist because i wanted to put everything in static
+
+	For simplicity sake, argument parameters are only looked up
+		if they are bundled with the argument.
+
+	`ping localhost -c 3` is correct for the real ping, not for ft_ping
 */
 void	flag_wrapper(char *flag, t_ping *data)
 {
@@ -42,6 +47,7 @@ void	flag_wrapper(char *flag, t_ping *data)
 
 /*
 	Flag are batched together in an attempt to minimize the comparisons
+	usage exemple `--help` or `--count=3`
 */
 static void	word_flag(char *flag, t_ping *data)
 {
@@ -115,6 +121,8 @@ static void	word_flag_else(char *flag, t_ping *data)
 /*
 	Flag are batched together in an attempt to minimize the comparisons
 	For single flags, multiples ones can be given at once
+
+	usage exemple `-f` or `-fc3`, note that `-c3f` is incorrect
 */
 static void	single_flag(char *flag, t_ping *data)
 {
