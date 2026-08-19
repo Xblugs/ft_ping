@@ -34,13 +34,39 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	// data->header.code = 0;
 	data->header.type = ECHO_REQUEST;
 
-	int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
-	if (sockfd > 0)
+	struct addrinfo hint = (struct addrinfo){0}, *res = NULL, *rp = NULL;
+	hint.ai_family = AF_INET;
+	int test = getaddrinfo(av[1], NULL, &hint, &res);
+	if (test)
+	{
+		printf("Addr error: %s\n", gai_strerror(test));
+		return (1);
+	}
+	int	sfd = 0;
+	for (rp = res; rp != NULL; rp = rp->ai_next)
+	{
+		printf("%p %s\n", rp, rp->ai_addr->sa_data);
+		sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sfd == -1)
+            continue;
+
+        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+            break;                  /* Success */
+
+		close(sfd);
+	}
+	freeaddrinfo(res);
+	if (rp == NULL)
+		printf("Not found :c\n");
+	printf("We in boss\n");
+	close(sfd);
+
+	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
+	if (data->sockfd > 0)
 		data->flags |= ROOT_FLAG;
 	else
-		sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-	printf("%d\n", sockfd);
-	if (sockfd < 0)
+		data->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+	if (data->sockfd < 0)
 	{
 		printf("%s", MSG_MISS_HOST);
 		return (1);
@@ -48,10 +74,11 @@ int	ping_init(int *ac, char **av, t_ping *data)
 
 	// bind + accept?
 	// do stuff
+	// alarm()
 
 	// if closing a fd fail, pray your OS will do the cleanup
-	shutdown(sockfd, SHUT_RDWR);
-	close(sockfd);
+	shutdown(data->sockfd, SHUT_RDWR);
+	close(data->sockfd);
 	return (0);
 }
 

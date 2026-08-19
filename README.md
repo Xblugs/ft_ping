@@ -31,13 +31,16 @@ Done on Debian 13 (Trixie) with inetutils 2.6
 - Usage of excve, ping, fcntl, poll and ppoll is strictly forbidden.
 
 Ping send ICMP packets (different protocol than TCP/UDP) ~
-[ICMP Wikipedia page](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)
+[ICMP - Wikipedia page](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol)  
+This is done over a raw socket in case the executable possess root privileges otherwise a datagram socket is used. ~ [Socket types - Wikipedia page](https://en.wikipedia.org/wiki/Network_socket#Types)
+
+Check yourself with `strace -e socket ping 8.8.8.8` *(sudo strace to see raw sockets)*
 
 ## Bonus Part
 
 Manage additionals flags such as: ([inetutils-ping man page](https://manpages.debian.org/trixie/inetutils-ping/ping.1.en.html))
 
-- `-f` or `--flood` = [Flood ping](https://en.wikipedia.org/wiki/Ping_flood). Outputs packets as fast as they come back or one hundred times per second, whichever is more. For every ECHO_REQUEST sent a period ``.'' is printed, while for every ECHO_REPLY received a backspace is printed. This provides a rapid display of how many packets are being dropped. Only the super-user may use this option. This can be very hard on a network and should be used with caution.
+- `-f` or `--flood` = [Flood ping](https://en.wikipedia.org/wiki/Ping_flood). Outputs packets as fast as they come back or one hundred times per second, whichever is more. For every ECHO_REQUEST sent a period `'.'` is printed, while for every ECHO_REPLY received a backspace is printed. This provides a rapid display of how many packets are being dropped. Only the super-user may use this option. This can be very hard on a network and should be used with caution.
 
 - `--ip-timestamp <flag>` = define timestamp, can be one of <tsonly|tsandaddr>  
 `tsonly` = store timestamps only.  

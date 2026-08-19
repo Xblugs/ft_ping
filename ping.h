@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define DEBUG			1
@@ -54,6 +55,7 @@ typedef struct s_ping
 	unsigned short	timeout_val;
 	unsigned char	timestamp_val;
 	unsigned char	type_val;
+	int				sockfd;
 	int				*ac;
 	char			**av;
 	struct icmphdr	header;
