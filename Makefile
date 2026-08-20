@@ -32,6 +32,8 @@ fclean: clean
 
 re: fclean all
 
+rebuild: re
+
 yolo: $(OBJ) # ignore warnings
 	$(CC) $(CFLAGS) $(OBJ) -o $(NAME) $(LIB)
 

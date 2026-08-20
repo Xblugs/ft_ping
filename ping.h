@@ -1,7 +1,10 @@
 #pragma once
 
+// command to check if a header is part of the standard lib
 // echo "#include <netinet/ip_icmp.h>" | gcc -x c -E - | grep "netinet/ip_icmp.h"
 // libc equivalent of <linux/icmp.h>, gives the icmphdr struct
+#include <arpa/inet.h>
+#include <errno.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
@@ -11,7 +14,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+// Debug mode & colorful prints
+// This is not the verbose flag
 #define DEBUG			1
+#define PURPLE			"\e[0;35m"
+#define END				"\e[0m"
 
 #define MSG_INVAL_OPT	"ping: invalid option -- "	// + "'option'\n"
 #define MSG_MISS_HOST	"ping: missing host operand\n"
@@ -37,8 +44,8 @@
 #define VERBOSE_FLAG	2048
 #define COUNT_FLAG		4096
 #define ROOT_FLAG		8192
-#define PLACEHOLDER1_FLAG		16384
-#define PLACEHOLDER2_FLAG		32768
+#define PHOLD1_FLAG		16384 // currently placeholder
+#define PHOLD2_FLAG		32768 // currently placeholder
 
 // Forward declaration to keep things ordered
 typedef struct s_ping t_ping;
@@ -65,3 +72,4 @@ typedef struct s_ping
 int		ping_init(int *ac, char **av, t_ping *data) __asm__("Init boi");
 int 	arg_parse(t_ping *data) 					__asm__("Parsi boi");
 void	flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi Wrappi");
+int		socket_init(t_ping *data)					__asm__("Socki boi");
