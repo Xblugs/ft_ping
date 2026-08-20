@@ -37,45 +37,41 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	struct addrinfo hint	= (struct addrinfo){0}, *res = NULL, *rp = NULL;
 	hint.ai_family 			= AF_INET;
 	hint.ai_flags 			|= AI_CANONNAME;
-	
-	data->ret = getaddrinfo(av[1], NULL, &hint, &res);
-	if (data->ret)
-	{
-		if (DEBUG)
-			printf(PURPLE"Addr error: %s\n"END, gai_strerror(data->ret));
-		return (1);
-	}
 
 	if (socket_init(data))
 		return (1);
 
-	struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
-	if (inet_pton(AF_INET, av[1], &ip->sin_addr.s_addr))
+	for (int i = 1; av[i] != NULL; i++)
 	{
-		// IPv4
-	}
-	else
-	{
-		// Hostname
-		int	sfd = 0;
-		for (rp = res; rp != NULL; rp = rp->ai_next)
-		{
-			printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
-			sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-			if (sfd == -1)
-				continue;
+		if (av[i][0] == '-')
+			continue;
 
-			if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
-				break;                  /* Success */
-	
-			close(sfd);
+		data->ret = getaddrinfo(av[i], NULL, &hint, &res);
+		if (data->ret)
+		{
+			if (DEBUG)
+				printf(PURPLE"getaddr error: %s\n"END, gai_strerror(data->ret));
 		}
-		if (rp == NULL)
-			printf("Not found :c\n");
+
+		struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
+		if (inet_pton(AF_INET, av[1], &ip->sin_addr.s_addr))
+		{
+			// IPv4
+		}
 		else
-			printf("We in boss\n");
-		freeaddrinfo(res);
-		close(sfd);
+		{
+			// Hostname
+			for (rp = res; rp != NULL; rp = rp->ai_next)
+			{
+				printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
+				// re add connect logic here
+			}
+			if (rp == NULL)
+				printf("Not found :c\n");
+			else
+				printf("We in boss\n");
+			freeaddrinfo(res);
+		}
 	}
 
 	// do stuff
@@ -101,7 +97,7 @@ int arg_parse(t_ping *data)
 		flag_wrapper(data->av[i], data);
 
 		if (DEBUG)
-			printf(PURPLE"%s\tflag = %#x\n"END, data->av[i], data->flags);
+			printf(PURPLE"Found %s\tflag = %#x\n"END, data->av[i], data->flags);
 		if (data->ret)
 			break;
 	}
@@ -111,7 +107,7 @@ int arg_parse(t_ping *data)
 
 /*
 	Try to use RAW sockets (legacy)
-	Use DGRAM as fallback as the real ping
+	Use DGRAM as fallback
 */
 int	socket_init(t_ping *data)
 {
@@ -125,5 +121,7 @@ int	socket_init(t_ping *data)
 		printf("%s", MSG_MISS_HOST);
 		return (1);
 	}
+	if (DEBUG)
+		printf(PURPLE"root status: %d\n"END, (data->flags & ROOT_FLAG) == ROOT_FLAG);
 	return (0);
 }
