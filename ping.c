@@ -12,6 +12,9 @@
 
 #include "ping.h"
 
+// Static section
+static void	clean_close(t_ping *data);
+
 int	main(int ac, char** av)
 {
 	if (ac == 1)
@@ -21,107 +24,73 @@ int	main(int ac, char** av)
 	}
 	t_ping data = (t_ping){0};
 	data.ret = ping_init(&ac, av, &data);
+	clean_close(&data);
 
 	return (data.ret);
 }
 
-int	ping_init(int *ac, char **av, t_ping *data)
+/*
+	Properly close the socket before returning
+*/
+static void	clean_close(t_ping *data)
 {
-	data->ac = ac;
-	data->av = av;
-	if(arg_parse(data))
-		return (1);
-	// data->header.code = 0;
-	data->header.type = ECHO_REQUEST;
+	// if closing a fd fail, pray your OS will do the cleanup
+	shutdown(data->sockfd, SHUT_RDWR);
+	close(data->sockfd);
+}
 
+static void	do_ping(t_ping *data)
+{
+	// alarm()
 	struct addrinfo hint	= (struct addrinfo){0}, *res = NULL, *rp = NULL;
 	hint.ai_family 			= AF_INET;
 	hint.ai_flags 			|= AI_CANONNAME;
 
-	if (socket_init(data))
-		return (1);
-
-	for (int i = 1; av[i] != NULL; i++)
+	for (int i = 1; data->av[i] != NULL; i++)
 	{
-		if (av[i][0] == '-')
-			continue;
+		if (data->av[i][0] == '-')
+			continue ;
 
-		data->ret = getaddrinfo(av[i], NULL, &hint, &res);
+		resolve_host(data, data->av[i], &hint, &res);
 		if (data->ret)
-		{
-			if (DEBUG)
-				printf(PURPLE"getaddr error: %s\n"END, gai_strerror(data->ret));
-		}
+			return ;
 
 		struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
-		if (inet_pton(AF_INET, av[1], &ip->sin_addr.s_addr))
+		if (inet_pton(AF_INET, data->av[i], &ip->sin_addr.s_addr))
 		{
 			// IPv4
+			if (DEBUG)
+				printf(PURPLE"IP!\n"END);
 		}
 		else
 		{
 			// Hostname
+			if (DEBUG)
+				printf(PURPLE"Hostname!\n"END);
 			for (rp = res; rp != NULL; rp = rp->ai_next)
 			{
 				printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
 				// re add connect logic here
 			}
 			if (rp == NULL)
+			{
 				printf("Not found :c\n");
+				data->ret = 1;
+			}
 			else
 				printf("We in boss\n");
 			freeaddrinfo(res);
 		}
 	}
-
-	// do stuff
-	// alarm()
-
-	// if closing a fd fail, pray your OS will do the cleanup
-	shutdown(data->sockfd, SHUT_RDWR);
-	close(data->sockfd);
-	return (0);
 }
 
-/*
-	Retrieve flags and their values
-	[-?, -h, --help] don't need to be stored, execute directly
-*/
-int arg_parse(t_ping *data)
+void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res)
 {
-	// '-' and '--' are valid inputs
-	for (int i = 1; i < *data->ac; i++)
+	data->ret = getaddrinfo(av, NULL, hint, res);
+	if (data->ret)
 	{
-		if (data->av[i][0] != '-' || strlen(data->av[i]) == 1)
-			continue;
-		flag_wrapper(data->av[i], data);
-
 		if (DEBUG)
-			printf(PURPLE"Found %s\tflag = %#x\n"END, data->av[i], data->flags);
-		if (data->ret)
-			break;
+			printf(PURPLE"getaddr error: %s\n"END, gai_strerror(data->ret));
+		data->ret = 1;
 	}
-	
-	return (0);
-}
-
-/*
-	Try to use RAW sockets (legacy)
-	Use DGRAM as fallback
-*/
-int	socket_init(t_ping *data)
-{
-	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
-	if (data->sockfd > 0)
-		data->flags |= ROOT_FLAG;
-	else
-		data->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-	if (data->sockfd < 0)
-	{
-		printf("%s", MSG_MISS_HOST);
-		return (1);
-	}
-	if (DEBUG)
-		printf(PURPLE"root status: %d\n"END, (data->flags & ROOT_FLAG) == ROOT_FLAG);
-	return (0);
 }

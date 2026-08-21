@@ -1,3 +1,5 @@
+/asm
 /obj
+*.s
 *.o
 ft_ping

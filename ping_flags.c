@@ -59,56 +59,73 @@ static void	word_flag(char *flag, t_ping *data)
 		word_flag_else(flag, data);
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	word_flag_am(char *flag, t_ping *data)
 {
-	if (strncmp(flag, "--i", 3) == 0)
+	// if (strncmp(flag, "--i", 3) == 0)
+	// {
+	// 	if (strcmp(flag, "--ignore-routing") == 0)
+	// 		data->flag_bag.flags |= IGN_ROUTE_FLAG;
+	// 	else if (strncmp(flag, "--ip-timestamp", 15) == 0)
+	// 		data->flag_bag.flags |= TIMESTAMP_FLAG;
+	// }
+	// else if (strncmp(flag, "--count", 8) == 0)
+	// {
+	// 	data->flag_bag.flags |= COUNT_FLAG;
+	// }
+	// else if (strcmp(flag, "--flood") == 0)
+	// {
+	// 	data->flag_bag.flags |= FLOOD_FLAG;
+	// }
+	if (strcmp(flag, "--help") == 0)
 	{
-		if (strcmp(flag, "--ignore-routing") == 0)
-			data->flags |= IGN_ROUTE_FLAG;
-		else if (strncmp(flag, "--ip-timestamp", 15) == 0)
-			data->flags |= TIMESTAMP_FLAG;
-	}
-	else if (strncmp(flag, "--count", 8) == 0)
-		data->flags |= COUNT_FLAG;
-	else if (strcmp(flag, "--flood") == 0)
-		data->flags |= FLOOD_FLAG;
-	else if (strcmp(flag, "--help") == 0)
 		// call help here
 		data->ret = 1;
-	else if (strncmp(flag, "--linger", 9) == 0)
-		data->flags |= WAIT_FLAG;
+	}
+	// else if (strncmp(flag, "--linger", 9) == 0)
+	// {
+	// 	data->flag_bag.flags |= WAIT_FLAG;
+	// }
 	else
 		data->ret = unknown_flag(flag, '\0');
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	word_flag_nz(char *flag, t_ping *data)
 {
-	if (strncmp(flag, "--t", 3) == 0)
-	{
-		if (strncmp(flag, "--timeout", 10) == 0)
-			data->flags |= STOP_FLAG;
-		else if (strncmp(flag, "--tos", 6) == 0)
-			data->flags |= TYPE_FLAG;
-		else if (strcmp(flag, "--ttl") == 0)
-			data->flags |= TTL_FLAG;
-	}
-	else if (strncmp(flag, "--p", 3) == 0)
-	{
-		if (strncmp(flag, "--pattern", 10) == 0)
-			data->flags |= PATTERN_FLAG;
-		else if (strncmp(flag, "--preload", 10) == 0)
-			data->flags |= LOAD_FLAG;
-	}
-	else if (strcmp(flag, "--numeric") == 0)
-			data->flags |= NUMERIC_FLAG;
-	else if (strncmp(flag, "--size", 7) == 0)
-		data->flags |= SIZE_FLAG;
-	else if (strcmp(flag, "--verbose") == 0)
-		data->flags |= VERBOSE_FLAG;
+	// if (strncmp(flag, "--t", 3) == 0)
+	// {
+	// 	if (strncmp(flag, "--timeout", 10) == 0)
+	// 		data->flag_bag.flags |= STOP_FLAG;
+	// 	else if (strncmp(flag, "--tos", 6) == 0)
+	// 		data->flag_bag.flags |= TYPE_FLAG;
+	// 	else if (strcmp(flag, "--ttl") == 0)
+	// 		data->flag_bag.flags |= TTL_FLAG;
+	// }
+	// else if (strncmp(flag, "--p", 3) == 0)
+	// {
+	// 	if (strncmp(flag, "--pattern", 10) == 0)
+	// 		data->flag_bag.flags |= PATTERN_FLAG;
+	// 	else if (strncmp(flag, "--preload", 10) == 0)
+	// 		data->flag_bag.flags |= LOAD_FLAG;
+	// }
+	// else if (strcmp(flag, "--numeric") == 0)
+	// 		data->flag_bag.flags |= NUMERIC_FLAG;
+	// else if (strncmp(flag, "--size", 7) == 0)
+	// 	data->flag_bag.flags |= SIZE_FLAG;
+	if (strcmp(flag, "--verbose") == 0)
+		data->flag_bag.flags |= VERBOSE_FLAG;
 	else
 		data->ret = unknown_flag(flag, '\0');
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	word_flag_else(char *flag, t_ping *data)
 {
 	// implementation secrets
@@ -148,21 +165,24 @@ static void	single_flag(char *flag, t_ping *data)
 	}
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	single_flag_am(char *flag, t_ping *data)
 {
 	switch (flag[0])
 	{
-	case 'c': // require parameter
-		data->flags |= COUNT_FLAG;
-		break;
+	// case 'c': // require parameter
+	// 	data->flag_bag.flags |= COUNT_FLAG;
+	// 	break;
 
-	case 'f':
-		data->flags |= FLOOD_FLAG;
-		break;
+	// case 'f':
+	// 	data->flag_bag.flags |= FLOOD_FLAG;
+	// 	break;
 
-	case 'l': // require parameter
-		data->flags |= LOAD_FLAG;
-		break;
+	// case 'l': // require parameter
+	// 	data->flag_bag.flags |= LOAD_FLAG;
+	// 	break;
 
 	default:
 		data->ret = unknown_flag(NULL, flag[0]);
@@ -170,40 +190,43 @@ static void	single_flag_am(char *flag, t_ping *data)
 	}
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	single_flag_nz(char *flag, t_ping *data)
 {
 	switch (flag[0])
 	{
-	case 'n':
-		data->flags |= NUMERIC_FLAG;
-		break;
+	// case 'n':
+	// 	data->flag_bag.flags |= NUMERIC_FLAG;
+	// 	break;
 
-	case 'p': // require parameter
-		data->flags |= PATTERN_FLAG;
-		break;
+	// case 'p': // require parameter
+	// 	data->flag_bag.flags |= PATTERN_FLAG;
+	// 	break;
 
-	case 'r':
-		data->flags |= IGN_ROUTE_FLAG;
-		break;
+	// case 'r':
+	// 	data->flag_bag.flags |= IGN_ROUTE_FLAG;
+	// 	break;
 
-	case 's': // require parameter
-		data->flags |= SIZE_FLAG;
-		break;
+	// case 's': // require parameter
+	// 	data->flag_bag.flags |= SIZE_FLAG;
+	// 	break;
 
-	case 'T': // require parameter
-		data->flags |= TYPE_FLAG;
-		break;
+	// case 'T': // require parameter
+	// 	data->flag_bag.flags |= TYPE_FLAG;
+	// 	break;
 
-	case 'w': // require parameter
-		data->flags |= STOP_FLAG;
-		break;
+	// case 'w': // require parameter
+	// 	data->flag_bag.flags |= STOP_FLAG;
+	// 	break;
 
-	case 'W': // require parameter
-		data->flags |= WAIT_FLAG;
-		break;
+	// case 'W': // require parameter
+	// 	data->flag_bag.flags |= WAIT_FLAG;
+	// 	break;
 
 	case 'v':
-		data->flags |= VERBOSE_FLAG;
+		data->flag_bag.flags |= VERBOSE_FLAG;
 		break;
 
 	case 'V':
@@ -217,6 +240,9 @@ static void	single_flag_nz(char *flag, t_ping *data)
 	}
 }
 
+/*
+	Commented values are not implemented yet
+*/
 static void	single_flag_else(char *flag, t_ping *data)
 {
 	// implementation secrets
@@ -227,7 +253,9 @@ static void	single_flag_else(char *flag, t_ping *data)
 }
 
 /*
-	to be called on unknown flag to build the message
+	Your flag is in another castle!
+
+	To be called on unknown flag to build the message
 		`-narnia`  --> invalid option 'a'
 		`--narnia` --> invalid option '--narnia'
 	Returns 1 (cancel code)
