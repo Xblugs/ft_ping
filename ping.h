@@ -114,6 +114,10 @@ typedef struct s_ping
 //   } un;
 // };
 
+//	ping.c
+
+void			do_ping(t_ping *data)						__asm__("Pinggi");
+
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);
 
@@ -121,5 +125,6 @@ int				ping_init(int *ac, char **av, t_ping *data);
 void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi Wrappi");
 
 // ping_utils.c
+unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll Time boi");
 unsigned long	timespan_ms(struct timeval *t0)				__asm__("Time boi");
 unsigned long	timespan(struct timeval *t0)				__asm__("Big Time boi");

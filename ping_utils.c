@@ -15,6 +15,19 @@
 /*
 	t0 = ping sent
 	t1 = now = ping received
+	Return time in us
+*/
+unsigned long	timespan_us(struct timeval *t0)
+{
+	struct timeval 	t1;
+	gettimeofday(&t1, NULL);
+	return ((t1.tv_sec - t0->tv_sec)
+		+ (t1.tv_usec - t0->tv_usec));
+}
+
+/*
+	t0 = ping sent
+	t1 = now = ping received
 	Return time in ms
 */
 unsigned long	timespan_ms(struct timeval *t0)

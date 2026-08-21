@@ -14,6 +14,8 @@
 
 // Static section
 static void	clean_close(t_ping *data);
+static void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res);
+static 
 
 int	main(int ac, char** av)
 {
@@ -55,36 +57,39 @@ static void	do_ping(t_ping *data)
 		if (data->ret)
 			return ;
 
-		struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
-		if (inet_pton(AF_INET, data->av[i], &ip->sin_addr.s_addr))
+		if (DEBUG)
 		{
-			// IPv4
-			if (DEBUG)
-				printf(PURPLE"IP!\n"END);
+			struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
+			if (inet_pton(AF_INET, data->av[i], &ip->sin_addr.s_addr))
+				printf(PURPLE"IP! (%s)\n"END, data->av[i]);
+			else
+				printf(PURPLE"Hostname! (%s)\n"END, data->av[i]);
+		}
+
+		for (rp = res; rp != NULL; rp = rp->ai_next)
+		{
+			printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
+
+			ssize_t bytes_sent = sendto(data->sockfd, 
+                            data->packet, HEADER_SIZE + PAYLOAD_SIZE, 
+                            0, 
+                            rp->ai_addr, rp->ai_addrlen);
+							
+			if (bytes_sent >= 0)
+				break ;
+		}
+		if (rp == NULL)
+		{
+			printf("Not found :c\n");
+			data->ret = 1;
 		}
 		else
-		{
-			// Hostname
-			if (DEBUG)
-				printf(PURPLE"Hostname!\n"END);
-			for (rp = res; rp != NULL; rp = rp->ai_next)
-			{
-				printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
-				// re add connect logic here
-			}
-			if (rp == NULL)
-			{
-				printf("Not found :c\n");
-				data->ret = 1;
-			}
-			else
-				printf("We in boss\n");
-			freeaddrinfo(res);
-		}
+			printf("We in boss\n");
+		freeaddrinfo(res);
 	}
 }
 
-void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res)
+static void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res)
 {
 	data->ret = getaddrinfo(av, NULL, hint, res);
 	if (data->ret)
