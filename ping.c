@@ -14,14 +14,13 @@
 
 // Static section
 static void	clean_close(t_ping *data);
-static void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res);
-static 
+static void	*resolve_host(t_ping *data, char *av);
 
 int	main(int ac, char** av)
 {
 	if (ac == 1)
 	{
-		printf("%s", MSG_MISS_HOST);
+		fprintf(stderr, "%s", MSG_MISS_HOST);
 		return (64);
 	}
 	t_ping data = (t_ping){0};
@@ -41,19 +40,17 @@ static void	clean_close(t_ping *data)
 	close(data->sockfd);
 }
 
-static void	do_ping(t_ping *data)
+void	do_ping(t_ping *data)
 {
 	// alarm()
-	struct addrinfo hint	= (struct addrinfo){0}, *res = NULL, *rp = NULL;
-	hint.ai_family 			= AF_INET;
-	hint.ai_flags 			|= AI_CANONNAME;
+	struct addrinfo *res = NULL, *rp = NULL;
 
 	for (int i = 1; data->av[i] != NULL; i++)
 	{
 		if (data->av[i][0] == '-')
 			continue ;
 
-		resolve_host(data, data->av[i], &hint, &res);
+		res = resolve_host(data, data->av[i]);
 		if (data->ret)
 			return ;
 
@@ -61,41 +58,44 @@ static void	do_ping(t_ping *data)
 		{
 			struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
 			if (inet_pton(AF_INET, data->av[i], &ip->sin_addr.s_addr))
-				printf(PURPLE"IP! (%s)\n"END, data->av[i]);
+				DEBUG_PRINT("found IP! (%s)", data->av[i]);
 			else
-				printf(PURPLE"Hostname! (%s)\n"END, data->av[i]);
+				DEBUG_PRINT("found Hostname! (%s = %s)", data->av[i], inet_ntoa(ip->sin_addr));
 		}
 
-		for (rp = res; rp != NULL; rp = rp->ai_next)
+		// find the right address from the getaddrinfo return
+		// for (rp = res; rp != NULL; rp = rp->ai_next)
+		// {
+		// }
+		// if (rp == NULL)
+		// 	data->ret = 1;
+		rp = res;
+		while (1)
 		{
-			printf("rp=%p next=%p canonname=%s\n", rp, rp->ai_next, rp->ai_canonname);
-
-			ssize_t bytes_sent = sendto(data->sockfd, 
-                            data->packet, HEADER_SIZE + PAYLOAD_SIZE, 
-                            0, 
-                            rp->ai_addr, rp->ai_addrlen);
-							
-			if (bytes_sent >= 0)
+			// send
+			if (ping_send(data, rp))
 				break ;
+
+			// search/wait for answer
+
+			// print shit
 		}
-		if (rp == NULL)
-		{
-			printf("Not found :c\n");
-			data->ret = 1;
-		}
-		else
-			printf("We in boss\n");
+
 		freeaddrinfo(res);
 	}
 }
 
-static void	resolve_host(t_ping *data, char *av, struct addrinfo *hint, struct addrinfo **res)
+static void	*resolve_host(t_ping *data, char *av)
 {
-	data->ret = getaddrinfo(av, NULL, hint, res);
+	struct addrinfo hint	= (struct addrinfo){0}, *res = NULL;
+	hint.ai_family 			= AF_INET;
+	hint.ai_flags 			|= AI_CANONNAME;
+
+	data->ret = getaddrinfo(av, NULL, &hint, &res);
 	if (data->ret)
 	{
-		if (DEBUG)
-			printf(PURPLE"getaddr error: %s\n"END, gai_strerror(data->ret));
+		DEBUG_PRINT("getaddr error: %s", gai_strerror(data->ret));
 		data->ret = 1;
 	}
+	return (res);
 }

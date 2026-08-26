@@ -263,8 +263,8 @@ static void	single_flag_else(char *flag, t_ping *data)
 static int	unknown_flag(char *flag, char f)
 {
 	if (flag != NULL)
-		printf("%s '%s'\n", MSG_INVAL_OPT, flag);
+		fprintf(stderr, "%s '%s'\n", MSG_INVAL_OPT, flag);
 	else
-		printf("%s '%c'\n", MSG_INVAL_OPT, f);
+		fprintf(stderr, "%s '%c'\n", MSG_INVAL_OPT, f);
 	return (1);
 }

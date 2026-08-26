@@ -36,7 +36,7 @@ int	ping_init(int *ac, char **av, t_ping *data)
 
 	if (data->ret)
 	{
-		printf("%s", MSG_MISS_HOST);
+		fprintf(stderr, "%s", MSG_MISS_HOST);
 		return (1);
 	}
 	return (0);
@@ -55,8 +55,7 @@ static int arg_parse(t_ping *data)
 			continue;
 		flag_wrapper(data->av[i], data);
 
-		if (DEBUG)
-			printf(PURPLE"Found %s\tflag = %#x\n"END, data->av[i], data->flag_bag.flags);
+		DEBUG_PRINT("Found %s\tflag = %#x", data->av[i], data->flag_bag.flags);
 		if (data->ret)
 			break;
 	}
@@ -71,17 +70,16 @@ static int arg_parse(t_ping *data)
 static int	socket_init(t_ping *data)
 {
 	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
-	if (data->sockfd > 0)
+	if (data->sockfd >= 0)
 		data->flag_bag.flags |= ROOT_FLAG;
 	else
 		data->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
 	if (data->sockfd < 0)
 	{
-		printf("%s", MSG_MISS_HOST);
+		fprintf(stderr, "%s", MSG_MISS_HOST);
 		return (1);
 	}
-	if (DEBUG)
-		printf(PURPLE"root status: %d\n"END, (data->flag_bag.flags & ROOT_FLAG) == ROOT_FLAG);
+	DEBUG_PRINT("root status: %d", (data->flag_bag.flags & ROOT_FLAG) == ROOT_FLAG);
 	return (0);
 }
 

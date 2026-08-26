@@ -18,7 +18,16 @@
 // Debug mode & colorful prints
 // This is not the verbose flag
 #define DEBUG			1
-#define PURPLE			"\e[0;35m"
+
+// this macro was vibe coded
+#if DEBUG
+    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG] (%s:%d in %s) [" fmt "]\n" END, \
+                            __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#else
+    #define DEBUG_PRINT(fmt, ...)
+#endif
+
+#define PURPLE			"\e[1;95m"
 #define END				"\e[0m"
 
 #define MSG_INVAL_OPT	"ping: invalid option -- "	// + "'option'\n"
@@ -31,7 +40,7 @@
 		20 bytes are needed for the IP header
 		8  bytes are needed for the ICMP header
 
-	The payload size can be up to 65507 bytes
+	The payload size can be up to 65507 bytes (for a default ping)
 */
 #define HEADER_SIZE		8	// ICMP Header is 8 bytes
 #define PAYLOAD_SIZE	32	// 32 is standard for windows, 56 for Unix
@@ -41,6 +50,7 @@
 
 // 16 flags <==> short
 // upgrade to int if needed
+#define NO_FLAG			0
 #define FLOOD_FLAG		1		// -f, --flood
 #define LOAD_FLAG		2		// -l, --preload
 #define NUMERIC_FLAG	4		// -n, --numeric
@@ -123,6 +133,9 @@ int				ping_init(int *ac, char **av, t_ping *data);
 
 //	ping_flags.c
 void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi Wrappi");
+
+//	ping_send.c
+int				ping_send(t_ping *data, struct addrinfo *rp) __asm__("Pinggi Sendi");
 
 // ping_utils.c
 unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll Time boi");
