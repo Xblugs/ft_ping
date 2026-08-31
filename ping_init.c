@@ -32,8 +32,6 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	if (socket_init(data))
 		return (1);
 
-	do_ping(data);
-
 	if (data->ret)
 	{
 		fprintf(stderr, "%s", MSG_MISS_HOST);
@@ -69,6 +67,10 @@ static int arg_parse(t_ping *data)
 */
 static int	socket_init(t_ping *data)
 {
+	// set timeout: default 1s
+	struct timeval tv = {1, 0};
+	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
 	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
 	if (data->sockfd >= 0)
 		data->flag_bag.flags |= ROOT_FLAG;
@@ -93,8 +95,8 @@ static void	ICMP_header_init(t_ping *data)
 {
 	data->header.code 				= 0;
 	data->header.type 				= ECHO_REQUEST;
-	data->header.un.echo.id 		= getpid();
-	data->header.un.echo.sequence	= 1;
+	data->header.un.echo.id 		= htons((uint16_t) getpid());
+	data->header.un.echo.sequence	= htons(1);
 
 	// define the payload reserved space after the header
 	// don't ever exceed HEADER_SIZE or kaboom

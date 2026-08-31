@@ -38,7 +38,7 @@
 /*
 	The max packet size for IPv4 is 65535 bytes
 		20 bytes are needed for the IP header
-		8  bytes are needed for the ICMP header
+		 8 bytes are needed for the ICMP header
 
 	The payload size can be up to 65507 bytes (for a default ping)
 */
@@ -136,8 +136,10 @@ void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi Wrappi");
 
 //	ping_send.c
 int				ping_send(t_ping *data, struct addrinfo *rp) __asm__("Pinggi Sendi");
+uint16_t 		checksum(void *data, int len)				__asm__("Checki");
 
 // ping_utils.c
 unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll Time boi");
 unsigned long	timespan_ms(struct timeval *t0)				__asm__("Time boi");
 unsigned long	timespan(struct timeval *t0)				__asm__("Big Time boi");
+unsigned long	time_since(struct timeval *t0, struct timeval *t1);

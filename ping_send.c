@@ -14,7 +14,6 @@
 
 // Static section
 static void assemble_packet(t_ping *data);
-static uint16_t checksum(void *data, int len);
 
 int	ping_send(t_ping *data, struct addrinfo *rp)
 {
@@ -24,14 +23,13 @@ int	ping_send(t_ping *data, struct addrinfo *rp)
     assemble_packet(data);
 	ssize_t bytes_sent = sendto(data->sockfd, (void *) data->packet
 		, sizeof(data->packet), NO_FLAG, rp->ai_addr, rp->ai_addrlen);
-    
+
     DEBUG_PRINT("bytes sent: %lu\t(-1 = error)", bytes_sent);
 	if (bytes_sent >= 0)
-		return (1);
+		return (0);
 	else if (bytes_sent == -1)
 		perror("sendto");
-
-    return (0);
+    return (1);
 }
 
 /*
@@ -50,7 +48,7 @@ static void assemble_packet(t_ping *data)
 
 	Taken from https://en.wikipedia.org/wiki/Internet_checksum#Algorithm
 */
-static uint16_t checksum(void *data, int len)
+uint16_t checksum(void *data, int len)
 {
     uint32_t sum = 0;
     uint16_t *ptr = data;
