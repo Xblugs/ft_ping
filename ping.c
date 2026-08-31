@@ -56,15 +56,6 @@ void	do_ping(t_ping *data)
 		if (data->ret)
 			return ;
 
-		if (DEBUG)
-		{
-			struct sockaddr_in *ip = (struct sockaddr_in *)res->ai_addr;
-			if (inet_pton(AF_INET, data->av[i], &ip->sin_addr.s_addr))
-				DEBUG_PRINT("found IP! (%s)", data->av[i]);
-			else
-				DEBUG_PRINT("found Hostname! (%s = %s)", data->av[i], inet_ntoa(ip->sin_addr));
-		}
-
 		// find the right address from the getaddrinfo return
 		// for (rp = res; rp != NULL; rp = rp->ai_next)
 		// {
@@ -72,66 +63,44 @@ void	do_ping(t_ping *data)
 		// if (rp == NULL)
 		// 	data->ret = 1;
 		rp = res;
-		char buffer[100];
-		buffer[99] = 0;
-		int i = 0, rec = 0;
-		long time;
-		uint16_t old;
-		struct timeval tv = {0, 0};
-		struct iphdr ip;
+		char buffer[MAX_IP_SIZE];
+		int j = 0, rec = 0;
+		struct iphdr *ip = NULL;
+		struct icmphdr *icmp = NULL;
 		while (1)
 		{
 			// send
 			if (ping_send(data, rp))
 				break ;
 
-			// search/wait for answer
-			rec = recvfrom(data->sockfd, buffer, 99, NO_FLAG, rp->ai_addr, &rp->ai_addrlen);
+			// wait for answer or timeout
+			rec = recvfrom(data->sockfd, buffer, MAX_IP_SIZE, NO_FLAG, rp->ai_addr, &rp->ai_addrlen);
 			if (rec > 0)
 			{
-  				// printf("ICMP packet received from %s\n", inet_ntoa(peerAddr.sin_addr));
-  				struct icmphdr *icmp = (struct icmphdr *) (buffer + sizeof(struct iphdr));
-  				switch (icmp->type)
-				{
-  					case ICMP_ECHOREPLY:      printf("Type: ICMP_ECHOREPLY\n"); 		break;
-  					case ICMP_DEST_UNREACH:   printf("Type: ICMP_DEST_UNREACH\n"); 		break;
-  					case ICMP_SOURCE_QUENCH:  printf("Type: ICMP_SOURCE_QUENCH\n"); 	break;
-  					case ICMP_REDIRECT:       printf("Type: ICMP_REDIRECT\n"); 			break;
-  					case ICMP_ECHO:           printf("Type: ICMP_ECHO\n"); 				break;
-  					case ICMP_TIME_EXCEEDED:  printf("Type: ICMP_TIME_EXCEEDED\n"); 	break;
-  					case ICMP_PARAMETERPROB:  printf("Type: ICMP_PARAMETERPROB\n"); 	break;
-  					case ICMP_TIMESTAMP:      printf("Type: ICMP_TIMESTAMP\n"); 		break;
-  					case ICMP_TIMESTAMPREPLY: printf("Type: ICMP_TIMESTAMPREPLY\n"); 	break;
-  					case ICMP_INFO_REQUEST:   printf("Type: ICMP_INFO_REQUEST\n"); 		break;
-  					case ICMP_INFO_REPLY:     printf("Type: ICMP_INFO_REPLY\n"); 		break;
-  					case ICMP_ADDRESS:        printf("Type: ICMP_ADDRESS\n"); 			break;
-  					case ICMP_ADDRESSREPLY:   printf("Type: ICMP_ADDRESSREPLY\n"); 		break;
-  					default:                  printf("Type: <0x%02x>\n", icmp->type); 	break;
-  				}
+				ip = (struct iphdr *) buffer;
+				icmp = (struct icmphdr *) (buffer + ip->ihl * 4);
+  				if (DEBUG)
+					icmp_type_debug(icmp->type);
 			}
+			else
+				continue ;
 
-			// struct iphdr *ip = (struct iphdr *)buffer;
-			struct icmphdr *icmp = (struct icmphdr *)(buffer + ip.ihl * 4);
-			char *payload = (void *)icmp + HEADER_SIZE;
-			memcpy(&tv, payload, sizeof(struct timeval));
-			time = time_since(&tv, &data->time);
-			printf("si on est roleplay on a 0 ici [%ld]\n", time);
-			printf("since ping %lu ms = %lu us\n", timespan_ms(&tv), timespan_us(&tv));
-
-			old = icmp->checksum;
-			icmp->checksum = 0;
-			if (checksum(icmp, HEADER_SIZE + PAYLOAD_SIZE) != old)
+			if (verify_checksum(icmp))
 			{
-				printf("checksum not matching, packet dropped\n");
+				usleep(1000000); // spam prevention while WIP
 				continue ;
 			}
-			printf("Got ty=%d co=%d pid=%u %d %d\n", icmp->type, icmp->code, ntohs(icmp->un.echo.id), icmp->un.echo.sequence, i);
-			printf("sent id=%u reply id=%u\n",
-       			ntohs(data->header.un.echo.id),
-       			ntohs(icmp->un.echo.id));
 
-			// timespan_us(&tv);
-			i++;
+			printf("Got pid=%u seq=%d j=%d\n", ntohs(icmp->un.echo.id), icmp->un.echo.sequence, i);
+			printf("sent id=%u reply id=%u\n",
+       					ntohs(data->header.un.echo.id),
+       					ntohs(icmp->un.echo.id));
+
+			char *payload = (void *)icmp + HEADER_SIZE;
+			memcpy(&data->time, payload, sizeof(struct timeval));
+			printf("since ping %lu ms = %lu us\n", timespan_ms(&data->time), timespan_us(&data->time));
+
+			j++;
 			usleep(1000000);
 			// print shit
 		}
@@ -151,6 +120,10 @@ static void	*resolve_host(t_ping *data, char *av)
 	{
 		DEBUG_PRINT("getaddr error: %s", gai_strerror(data->ret));
 		data->ret = 1;
+		return (NULL);
 	}
+	if (DEBUG)
+		address_format_debug((struct sockaddr_in *)res->ai_addr, av);
+
 	return (res);
 }

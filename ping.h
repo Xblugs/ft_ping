@@ -21,7 +21,7 @@
 
 // this macro was vibe coded
 #if DEBUG
-    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG] (%s:%d in %s) [" fmt "]\n" END, \
+    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG] (%s:%d in %s):\n\t[" fmt "]\n" END, \
                             __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
     #define DEBUG_PRINT(fmt, ...)
@@ -42,6 +42,7 @@
 
 	The payload size can be up to 65507 bytes (for a default ping)
 */
+#define MAX_IP_SIZE		65535
 #define HEADER_SIZE		8	// ICMP Header is 8 bytes
 #define PAYLOAD_SIZE	32	// 32 is standard for windows, 56 for Unix
 
@@ -128,18 +129,26 @@ typedef struct s_ping
 
 void			do_ping(t_ping *data)						__asm__("Pinggi");
 
+// ping_debug.c
+void			address_format_debug(struct sockaddr_in *ip, char *av);
+void			icmp_type_debug(uint8_t type);
+
+//	ping_flags.c
+void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi_Wrappi");
+
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);
 
-//	ping_flags.c
-void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi Wrappi");
+//	ping_receive.c
+int				ping_receive(t_ping *data);
+int				verify_checksum(struct icmphdr *icmp);
 
 //	ping_send.c
-int				ping_send(t_ping *data, struct addrinfo *rp) __asm__("Pinggi Sendi");
-uint16_t 		checksum(void *data, int len)				__asm__("Checki");
+int				ping_send(t_ping *data, struct addrinfo *rp) __asm__("Pinggi_Sendi");
 
 // ping_utils.c
-unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll Time boi");
-unsigned long	timespan_ms(struct timeval *t0)				__asm__("Time boi");
-unsigned long	timespan(struct timeval *t0)				__asm__("Big Time boi");
+uint16_t 		checksum(void *data, int len)				__asm__("Checki");
+unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll_Time_boi");
+unsigned long	timespan_ms(struct timeval *t0)				__asm__("Time_boi");
+unsigned long	timespan(struct timeval *t0)				__asm__("Big_Time_boi");
 unsigned long	time_since(struct timeval *t0, struct timeval *t1);

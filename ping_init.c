@@ -68,8 +68,8 @@ static int arg_parse(t_ping *data)
 static int	socket_init(t_ping *data)
 {
 	// set timeout: default 1s
-	struct timeval tv = {1, 0};
-	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	data->time = (struct timeval) {1, 0};
+	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &data->time, sizeof(struct timeval));
 
 	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
 	if (data->sockfd >= 0)
