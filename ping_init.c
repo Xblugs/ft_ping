@@ -71,6 +71,7 @@ static int	socket_init(t_ping *data)
 	data->time = (struct timeval) {1, 0};
 	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &data->time, sizeof(struct timeval));
 
+	// data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW); // require ip header
 	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
 	if (data->sockfd >= 0)
 		data->flag_bag.flags |= ROOT_FLAG;
@@ -81,6 +82,7 @@ static int	socket_init(t_ping *data)
 		fprintf(stderr, "%s", MSG_MISS_HOST);
 		return (1);
 	}
+
 	DEBUG_PRINT("root status: %d", (data->flag_bag.flags & ROOT_FLAG) == ROOT_FLAG);
 	return (0);
 }
@@ -95,8 +97,9 @@ static void	ICMP_header_init(t_ping *data)
 {
 	data->header.code 				= 0;
 	data->header.type 				= ECHO_REQUEST;
+	data->header.checksum			= 0;
 	data->header.un.echo.id 		= htons((uint16_t) getpid());
-	data->header.un.echo.sequence	= htons(1);
+	// data->header.un.echo.sequence	= htons(-1); // reset in the loop later on
 
 	// define the payload reserved space after the header
 	// don't ever exceed HEADER_SIZE or kaboom

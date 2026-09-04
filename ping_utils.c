@@ -43,39 +43,14 @@ uint16_t checksum(void *data, int len)
 /*
 	t0 = ping sent
 	t1 = now
-	Return time in us
-*/
-unsigned long	timespan_us(struct timeval *t0)
-{
-	struct timeval 	t1;
-	gettimeofday(&t1, NULL);
-	return ((t1.tv_sec - t0->tv_sec) * 1000000UL 
-		+ (t1.tv_usec - t0->tv_usec));
-}
-
-/*
-	t0 = ping sent
-	t1 = now
 	Return time in ms
 */
-unsigned long	timespan_ms(struct timeval *t0)
+double	timespan_ms(struct timeval *t0)
 {
 	struct timeval 	t1;
 	gettimeofday(&t1, NULL);
-	return ((t1.tv_sec - t0->tv_sec) * 1000UL
-		+ (t1.tv_usec - t0->tv_usec) / 1000UL);
-}
-
-/*
-	t0 = ping sent
-	t1 = now
-	Return time in seconds
-*/
-unsigned long	timespan(struct timeval *t0)
-{
-	struct timeval 	t1;
-	gettimeofday(&t1, NULL);
-	return ((t1.tv_sec - t0->tv_sec));
+	return ((double) (t1.tv_sec - t0->tv_sec) * 1000.0
+		+ (double) (t1.tv_usec - t0->tv_usec) / 1000.0);
 }
 
 /*

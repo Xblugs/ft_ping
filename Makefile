@@ -1,7 +1,7 @@
 
 CC			:= cc
 CFLAGS		:= -Wextra -Wall -Werror -O3
-LIB			:=
+LIB			:= -lm
 
 ifeq ($(MAKECMDGOALS), yolo)
   $(eval CFLAGS=-O3)

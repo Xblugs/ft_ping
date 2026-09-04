@@ -5,6 +5,7 @@
 // libc equivalent of <linux/icmp.h>, gives the icmphdr struct
 #include <arpa/inet.h>
 #include <errno.h>
+#include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
@@ -17,12 +18,11 @@
 
 // Debug mode & colorful prints
 // This is not the verbose flag
-#define DEBUG			1
+#define DEBUG			0
 
 // this macro was vibe coded
-#if DEBUG
-    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG] (%s:%d in %s):\n\t[" fmt "]\n" END, \
-                            __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#if DEBUG == 1
+    #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG]\t[" fmt "]\n" END, ##__VA_ARGS__)
 #else
     #define DEBUG_PRINT(fmt, ...)
 #endif
@@ -71,6 +71,7 @@
 
 // Forward declaration to keep things ordered
 typedef struct s_flag t_flag;
+typedef struct s_stat t_stat;
 typedef struct s_ping t_ping;
 
 /*
@@ -83,17 +84,30 @@ typedef struct s_flag
 	unsigned short	linger_val;
 	unsigned short	pattern_val;
 	unsigned short	preload_val;
-	unsigned short	size_val;
+	unsigned int	size_val;
 	unsigned short	ttl;
 	unsigned short	timeout_val;
 	unsigned char	timestamp_val;
 	unsigned char	type_val;
 }	t_flag;
 
+typedef struct s_stat
+{
+	int		tx_count;
+	int		rx_count;
+	double	min;
+	double	avg;
+	double	max;
+	double	stddev; // standard deviation
+	double 	S;		// used for calc
+}	t_stat;
+
 typedef struct s_ping
 {
 	t_flag			flag_bag;
+	t_stat			stat_bag;
 	int				sockfd;
+	uint16_t		sockid;
 	int				*ac;
 	char			**av;
 	char			packet[HEADER_SIZE + PAYLOAD_SIZE];
@@ -125,10 +139,6 @@ typedef struct s_ping
 //   } un;
 // };
 
-//	ping.c
-
-void			do_ping(t_ping *data)						__asm__("Pinggi");
-
 // ping_debug.c
 void			address_format_debug(struct sockaddr_in *ip, char *av);
 void			icmp_type_debug(uint8_t type);
@@ -140,15 +150,17 @@ void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi_Wrappi");
 int				ping_init(int *ac, char **av, t_ping *data);
 
 //	ping_receive.c
-int				ping_receive(t_ping *data);
+int				ping_receive(t_ping *data, struct addrinfo *rp);
 int				verify_checksum(struct icmphdr *icmp);
+void			print_stats(t_stat *stats, char *host);
 
 //	ping_send.c
 int				ping_send(t_ping *data, struct addrinfo *rp) __asm__("Pinggi_Sendi");
 
 // ping_utils.c
 uint16_t 		checksum(void *data, int len)				__asm__("Checki");
-unsigned long	timespan_us(struct timeval *t0)				__asm__("Smoll_Time_boi");
-unsigned long	timespan_ms(struct timeval *t0)				__asm__("Time_boi");
-unsigned long	timespan(struct timeval *t0)				__asm__("Big_Time_boi");
+double			timespan_ms(struct timeval *t0);
 unsigned long	time_since(struct timeval *t0, struct timeval *t1);
+
+//	ping.c
+void			do_ping(t_ping *data)						__asm__("Pinggi");

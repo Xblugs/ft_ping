@@ -15,6 +15,9 @@
 // Static section
 static void	clean_close(t_ping *data);
 static void	*resolve_host(t_ping *data, char *av);
+static void reset_stats(t_stat *stats);
+
+
 
 int	main(int ac, char** av)
 {
@@ -44,8 +47,7 @@ static void	clean_close(t_ping *data)
 
 void	do_ping(t_ping *data)
 {
-	// alarm()
-	struct addrinfo *res = NULL, *rp = NULL;
+	struct addrinfo *res	= NULL, *rp = NULL;
 
 	for (int i = 1; data->av[i] != NULL; i++)
 	{
@@ -62,49 +64,27 @@ void	do_ping(t_ping *data)
 		// }
 		// if (rp == NULL)
 		// 	data->ret = 1;
+
 		rp = res;
-		char buffer[MAX_IP_SIZE];
-		int j = 0, rec = 0;
-		struct iphdr *ip = NULL;
-		struct icmphdr *icmp = NULL;
-		while (1)
+		int ping_left = 3;
+
+		// reset values before next round
+		reset_stats(&data->stat_bag);
+		data->header.un.echo.sequence = htons(-1);
+
+		while (ping_left)
 		{
 			// send
 			if (ping_send(data, rp))
 				break ;
 
-			// wait for answer or timeout
-			rec = recvfrom(data->sockfd, buffer, MAX_IP_SIZE, NO_FLAG, rp->ai_addr, &rp->ai_addrlen);
-			if (rec > 0)
-			{
-				ip = (struct iphdr *) buffer;
-				icmp = (struct icmphdr *) (buffer + ip->ihl * 4);
-  				if (DEBUG)
-					icmp_type_debug(icmp->type);
-			}
-			else
-				continue ;
-
-			if (verify_checksum(icmp))
-			{
-				usleep(1000000); // spam prevention while WIP
-				continue ;
-			}
-
-			printf("Got pid=%u seq=%d j=%d\n", ntohs(icmp->un.echo.id), icmp->un.echo.sequence, i);
-			printf("sent id=%u reply id=%u\n",
-       					ntohs(data->header.un.echo.id),
-       					ntohs(icmp->un.echo.id));
-
-			char *payload = (void *)icmp + HEADER_SIZE;
-			memcpy(&data->time, payload, sizeof(struct timeval));
-			printf("since ping %lu ms = %lu us\n", timespan_ms(&data->time), timespan_us(&data->time));
-
-			j++;
-			usleep(1000000);
-			// print shit
+			// receive
+			ping_receive(data, rp);
+			
+			usleep(1000000);	// default value
+			ping_left--;
 		}
-
+		print_stats(&data->stat_bag, data->av[i]);
 		freeaddrinfo(res);
 	}
 }
@@ -126,4 +106,18 @@ static void	*resolve_host(t_ping *data, char *av)
 		address_format_debug((struct sockaddr_in *)res->ai_addr, av);
 
 	return (res);
+}
+
+/*
+	Setup the structure
+*/
+static void reset_stats(t_stat *stats)
+{
+    stats->tx_count = 0;
+	stats->rx_count = 0;
+    stats->min = 999999999.0; 
+    stats->max = 0.0;
+    stats->avg = 0.0;
+	stats->stddev = 0.0;
+    stats->S = 0.0;
 }
