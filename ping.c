@@ -18,6 +18,16 @@ static void	*resolve_host(t_ping *data, char *av);
 static void reset_stats(t_stat *stats);
 
 
+int	g_sig = 0;
+
+/*
+	If any signal is received, clean exit
+	Most signal default to terminating the process on receive
+*/
+void	signal_handler(int sig)
+{
+	g_sig = sig;
+}
 
 int	main(int ac, char** av)
 {
@@ -76,7 +86,7 @@ void	do_ping(t_ping *data)
 			wait = data->flag_bag.interval;
 		DEBUG_PRINT("wait for %u", wait);
 
-		while (ping_left || !FLAG(COUNT_FLAG))
+		while ((ping_left || !FLAG(COUNT_FLAG)) && !g_sig)
 		{
 			// send
 			if (ping_send(data, rp))
@@ -90,6 +100,8 @@ void	do_ping(t_ping *data)
 		}
 		print_stats(&data->stat_bag, data->av[i]);
 		freeaddrinfo(res);
+		if (g_sig)
+			break ;
 	}
 }
 

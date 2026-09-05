@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -169,4 +170,5 @@ double			timespan_ms(struct timeval *t0);
 unsigned long	time_since(struct timeval *t0, struct timeval *t1);
 
 //	ping.c
+void			signal_handler(int sig);
 void			do_ping(t_ping *data)						__asm__("Pinggi");

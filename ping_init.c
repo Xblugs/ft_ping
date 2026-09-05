@@ -24,6 +24,7 @@ int	ping_init(int *ac, char **av, t_ping *data)
 {
 	data->ac = ac;
 	data->av = av;
+	signal(SIGINT, &signal_handler);
 	if(arg_parse(data))
 		return (1);
 
