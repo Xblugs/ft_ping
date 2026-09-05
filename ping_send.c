@@ -45,6 +45,13 @@ static void assemble_packet(t_ping *data)
 	data->header.un.echo.sequence = ntohs(data->header.un.echo.sequence);
 	data->header.un.echo.sequence++;
 	data->header.un.echo.sequence = htons(data->header.un.echo.sequence);
+
+	// preload the pattern (0x00 if none)
+	for (size_t i = 0; i < sizeof(data->packet); i++)
+	{
+		data->payload[i] = data->flag_bag.pattern_val;
+	}
+
     gettimeofday(&data->time, NULL);
 	memcpy(data->packet, (void *) &data->header, sizeof(struct icmphdr));
 	memcpy(data->payload, (void *) &data->time, sizeof(data->time));

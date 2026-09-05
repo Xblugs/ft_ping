@@ -85,6 +85,9 @@ void	do_ping(t_ping *data)
 		if (FLAG(INTERVAL_FLAG))
 			wait = data->flag_bag.interval;
 		DEBUG_PRINT("wait for %u", wait);
+		struct sockaddr_in *ip = (struct sockaddr_in *) rp->ai_addr;
+		printf("PING %s (%s): %lu bytes of data\n",
+					data->av[i], inet_ntoa(ip->sin_addr), sizeof(data->packet));
 
 		while ((ping_left || !FLAG(COUNT_FLAG)) && !g_sig)
 		{

@@ -49,7 +49,7 @@
 */
 #define MAX_IP_SIZE		65535
 #define HEADER_SIZE		8	// ICMP Header is 8 bytes
-#define PAYLOAD_SIZE	32	// 32 is standard for windows, 56 for Unix
+#define PAYLOAD_SIZE	56	// 32 is standard for windows, 56 for Unix
 
 #define ECHO_REPLY		0
 #define ECHO_REQUEST	8
