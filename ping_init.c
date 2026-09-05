@@ -33,10 +33,7 @@ int	ping_init(int *ac, char **av, t_ping *data)
 		return (1);
 
 	if (data->ret)
-	{
-		fprintf(stderr, "%s", MSG_MISS_HOST);
 		return (1);
-	}
 	return (0);
 }
 
@@ -46,19 +43,28 @@ int	ping_init(int *ac, char **av, t_ping *data)
 */
 static int arg_parse(t_ping *data)
 {
+	short host = 0;
+
 	// '-' and '--' are valid inputs
 	for (int i = 1; i < *data->ac; i++)
 	{
 		if (data->av[i][0] != '-' || strlen(data->av[i]) == 1)
+		{
+			host++;
 			continue;
+		}
 		flag_wrapper(data->av[i], data);
 
 		DEBUG_PRINT("Found %s\tflag = %#x", data->av[i], data->flag_bag.flags);
 		if (data->ret)
 			break;
 	}
-	
-	return (0);
+	if (!host && !data->ret)
+	{
+		data->ret = 1;
+		fprintf(stderr, "%s", MSG_MISS_HOST);
+	}
+	return (data->ret);
 }
 
 /*
@@ -79,11 +85,11 @@ static int	socket_init(t_ping *data)
 		data->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
 	if (data->sockfd < 0)
 	{
-		fprintf(stderr, "%s", MSG_MISS_HOST);
+		fprintf(stderr, "ping: failed to open socket\n");
 		return (1);
 	}
 
-	DEBUG_PRINT("root status: %d", (data->flag_bag.flags & ROOT_FLAG) == ROOT_FLAG);
+	DEBUG_PRINT("root status: %d", FLAG(ROOT_FLAG));
 	return (0);
 }
 

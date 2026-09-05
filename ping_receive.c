@@ -108,6 +108,6 @@ void print_stats(t_stat *stats, char *host)
     printf("--- %s ping statistics ---\n", host);
 	printf("%d packets transmitted, %d packets received, %.0f%% packet loss\n",
 		stats->tx_count, stats->rx_count, 1.0 - ((float) stats->rx_count / (float) stats->tx_count));
-    printf("rtt min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n\n",
+    printf("rtt min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
            stats->min, stats->avg, stats->max, stats->stddev);
 }

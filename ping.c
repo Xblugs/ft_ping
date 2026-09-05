@@ -66,13 +66,17 @@ void	do_ping(t_ping *data)
 		// 	data->ret = 1;
 
 		rp = res;
-		int ping_left = 3;
 
 		// reset values before next round
+		unsigned short ping_left = data->flag_bag.count_val;
 		reset_stats(&data->stat_bag);
 		data->header.un.echo.sequence = htons(-1);
+		int	wait = 1000;
+		if (FLAG(INTERVAL_FLAG))
+			wait = data->flag_bag.interval;
+		DEBUG_PRINT("wait for %u", wait);
 
-		while (ping_left)
+		while (ping_left || !FLAG(COUNT_FLAG))
 		{
 			// send
 			if (ping_send(data, rp))
@@ -81,7 +85,7 @@ void	do_ping(t_ping *data)
 			// receive
 			ping_receive(data, rp);
 			
-			usleep(1000000);	// default value
+			usleep(wait * 1000);	// default interval value is 1 second
 			ping_left--;
 		}
 		print_stats(&data->stat_bag, data->av[i]);

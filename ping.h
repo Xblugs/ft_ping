@@ -4,12 +4,14 @@
 // echo "#include <netinet/ip_icmp.h>" | gcc -x c -E - | grep "netinet/ip_icmp.h"
 // libc equivalent of <linux/icmp.h>, gives the icmphdr struct
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <errno.h>
 #include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <netinet/ip_icmp.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -30,10 +32,12 @@
 #define PURPLE			"\e[1;95m"
 #define END				"\e[0m"
 
+#define MSG_INVAL_ARG	"ping: invalid argument: "	// + "'arg'\n"
 #define MSG_INVAL_OPT	"ping: invalid option -- "	// + "'option'\n"
 #define MSG_MISS_HOST	"ping: missing host operand\n"
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
 #define MSG_VERSION		"ft_ping 1.0\nWritten by cczerwin.\n"
+#define MSG_CNT_FLOOD	"ping: cannot flood; minimal interval allowed for user is 200ms\n"
 
 /*
 	The max packet size for IPv4 is 65535 bytes
@@ -51,6 +55,7 @@
 
 // 16 flags <==> short
 // upgrade to int if needed
+#define FLAG(arg) 		((data->flag_bag.flags & arg) == arg)
 #define NO_FLAG			0
 #define FLOOD_FLAG		1		// -f, --flood
 #define LOAD_FLAG		2		// -l, --preload
@@ -66,7 +71,7 @@
 #define VERBOSE_FLAG	2048	// -v, --verbose
 #define COUNT_FLAG		4096	// -c, --count
 #define ROOT_FLAG		8192	// Internal flag, are we root or not
-#define PHOLD1_FLAG		16384	// currently placeholder
+#define INTERVAL_FLAG	16384	// -i, --interval
 #define PHOLD2_FLAG		32768	// currently placeholder
 
 // Forward declaration to keep things ordered
@@ -81,12 +86,13 @@ typedef struct s_flag
 {
 	unsigned short	flags;
 	unsigned short	count_val;
-	unsigned short	linger_val;
+	unsigned short	interval;		// -i, time between pings in ms
+	unsigned short	linger_val;		// -W, timeout per response
 	unsigned short	pattern_val;
 	unsigned short	preload_val;
 	unsigned int	size_val;
 	unsigned short	ttl;
-	unsigned short	timeout_val;
+	unsigned short	timeout_val;	// -w, global timeout
 	unsigned char	timestamp_val;
 	unsigned char	type_val;
 }	t_flag;
