@@ -389,12 +389,13 @@ static void	parse_value_hex(char *flag, t_ping *data, char type)
 			parametric flags don't allow for another flag
 				after them in the same string = skip the rest
 		*/
-		int len = strlen(flag);
+		size_t len = strlen(flag);
 		data->ret = -len;
+		len--;
 		data->flag_bag.pattern_len = len / 2 + len % 2;
 		if (len % 2)
 			sscanf(&flag[1], "%1hhx", &data->flag_bag.pattern_val[0]);
-		for (size_t i = 0; i < 16; i++)
+		for (size_t i = 0; i < len; i++)
 		{
 			sscanf(&flag[i * 2 + (len % 2) + 1], "%2hhx", &data->flag_bag.pattern_val[i + (len % 2)]);
 		}
