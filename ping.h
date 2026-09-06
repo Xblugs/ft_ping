@@ -27,7 +27,7 @@
 #if DEBUG == 1
     #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG]\t[" fmt "]\n" END, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT(fmt, ...)
+    #define DEBUG_PRINT(fmt, ...) do { } while ( 0 )
 #endif
 
 #define PURPLE			"\e[1;95m"
