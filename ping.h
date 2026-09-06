@@ -54,6 +54,8 @@
 #define ECHO_REPLY		0
 #define ECHO_REQUEST	8
 
+#define MAX_PATTERN_BYTES 16
+
 // 16 flags <==> short
 // upgrade to int if needed
 #define FLAG(arg) 		((data->flag_bag.flags & arg) == arg)
@@ -89,7 +91,8 @@ typedef struct s_flag
 	unsigned short	count_val;
 	unsigned short	interval;		// -i, time between pings in ms
 	unsigned short	linger_val;		// -W, timeout per response
-	unsigned short	pattern_val;
+	unsigned char	pattern_val[16];
+	unsigned char	pattern_len;
 	unsigned short	preload_val;
 	unsigned int	size_val;
 	unsigned short	ttl;

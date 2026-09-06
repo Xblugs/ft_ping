@@ -48,7 +48,7 @@ static void assemble_packet(t_ping *data)
 
 	// preload the pattern (0x00 if none)
 	for (size_t i = 0; i < PAYLOAD_SIZE; i++)
-		data->payload[i] = (char) i;
+		data->payload[i] = data->flag_bag.pattern_val[i % data->flag_bag.pattern_len];
 
     gettimeofday(&data->time, NULL);
 	memcpy(data->packet, (void *) &data->header, sizeof(struct icmphdr));
