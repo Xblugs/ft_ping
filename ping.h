@@ -33,6 +33,9 @@
 #define PURPLE			"\e[1;95m"
 #define END				"\e[0m"
 
+// TODO: Make macro for some of thoses?
+#define MSG_REQ_ARG		"ping: option requires an argument -- "
+// ping: option '--pattern' requires an argument
 #define MSG_INVAL_ARG	"ping: invalid argument: "	// + "'arg'\n"
 #define MSG_INVAL_OPT	"ping: invalid option -- "	// + "'option'\n"
 #define MSG_MISS_HOST	"ping: missing host operand\n"

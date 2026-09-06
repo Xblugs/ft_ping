@@ -74,7 +74,7 @@ static void	word_flag_am(char *flag, t_ping *data)
 	// {
 	// 	if (strcmp(flag, "--ignore-routing") == 0)
 	// 		data->flag_bag.flags |= IGN_ROUTE_FLAG;
-	// 	else if (strncmp(flag, "--ip-timestamp", 15) == 0)
+	// 	else if (strncmp(flag, "--ip-timestamp", 14) == 0)
 	// 		data->flag_bag.flags |= TIMESTAMP_FLAG;
 	// }
 	if (strncmp(flag, "--count", 8) == 0)
@@ -90,7 +90,7 @@ static void	word_flag_am(char *flag, t_ping *data)
 		// call help here
 		data->ret = 1;
 	}
-	// else if (strncmp(flag, "--linger", 9) == 0)
+	// else if (strncmp(flag, "--linger", 8) == 0)
 	// {
 	// 	data->flag_bag.flags |= WAIT_FLAG;
 	// }
@@ -105,18 +105,21 @@ static void	word_flag_nz(char *flag, t_ping *data)
 {
 	// if (strncmp(flag, "--t", 3) == 0)
 	// {
-	// 	if (strncmp(flag, "--timeout", 10) == 0)
+	// 	if (strncmp(flag, "--timeout", 9) == 0)
 	// 		data->flag_bag.flags |= STOP_FLAG;
-	// 	else if (strncmp(flag, "--tos", 6) == 0)
+	// 	else if (strncmp(flag, "--tos", 5) == 0)
 	// 		data->flag_bag.flags |= TYPE_FLAG;
 	// 	else if (strcmp(flag, "--ttl") == 0)
 	// 		data->flag_bag.flags |= TTL_FLAG;
 	// }
 	// else if (strncmp(flag, "--p", 3) == 0)
 	// {
-	if (strncmp(flag, "--pattern", 10) == 0)
+	if (strncmp(flag, "--pattern", 9) == 0)
+	{
 		data->flag_bag.flags |= PATTERN_FLAG;
-	// 	else if (strncmp(flag, "--preload", 10) == 0)
+		parse_value_hex(flag, data, 'w');
+	}
+	// 	else if (strncmp(flag, "--preload", 9) == 0)
 	// 		data->flag_bag.flags |= LOAD_FLAG;
 	// }
 	else if (strcmp(flag, "--numeric") == 0)
@@ -367,41 +370,51 @@ static float	parse_value_float(char *flag, t_ping *data, char type)
 */
 static void	parse_value_hex(char *flag, t_ping *data, char type)
 {
+	size_t len = strlen(flag);
+
+	// "-p" or "--pattern"
+	if (len == 1 || len == 9)
+	{
+		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
+		data->ret = 1;
+		return ;
+	}
 	if (type == 'w')
 	{
-
+		while (flag[0] != '=' && flag[0] != 0)
+			flag = &flag[1];
 	}
-	else // single flag
+	for (size_t i = 1; flag[i] != 0; i++)
 	{
-		for (size_t i = 1; flag[i] != 0; i++)
+		if (!isxdigit(flag[i]))
 		{
-			if (!isxdigit(flag[i]))
-			{
-				invalid_argument(&flag[i], '\0');
-				data->ret = 1;
-				return ;
-			}
+			invalid_argument(&flag[i], '\0');
+			data->ret = 1;
+			return ;
 		}
-		
-		/*
-			data->ret is used as a cursor in single flags
-
-			parametric flags don't allow for another flag
-				after them in the same string = skip the rest
-		*/
-		size_t len = strlen(flag);
-		data->ret = -len;
-		len--;
-		data->flag_bag.pattern_len = len / 2 + len % 2;
-		if (len % 2)
-			sscanf(&flag[1], "%1hhx", &data->flag_bag.pattern_val[0]);
-		for (size_t i = 0; i < len; i++)
-		{
-			sscanf(&flag[i * 2 + (len % 2) + 1], "%2hhx", &data->flag_bag.pattern_val[i + (len % 2)]);
-		}
-		printf("%s for %d len\n", data->flag_bag.pattern_val, data->flag_bag.pattern_len);
-		printf("%s\n", flag);
 	}
+	
+	/*
+		data->ret is used as a cursor in single flags
+
+		parametric flags don't allow for another flag
+			after them in the same string = skip the rest
+	*/
+	
+	if (type == 's')
+		data->ret = -len;
+	len--;
+
+	// 2 hexa symbol = 1 char --> 0x00 to 0xff
+	data->flag_bag.pattern_len = len / 2 + len % 2;
+	if (len % 2)
+		sscanf(&flag[1], "%1hhx", &data->flag_bag.pattern_val[0]);
+	for (size_t i = 0; i < len; i++)
+	{
+		sscanf(&flag[i * 2 + (len % 2) + 1], "%2hhx", &data->flag_bag.pattern_val[i + (len % 2)]);
+	}
+	DEBUG_PRINT("%s for %d pattern len [%s]",
+		data->flag_bag.pattern_val, data->flag_bag.pattern_len, flag);
 }
 
 static int	invalid_argument(char *flag, char f)
