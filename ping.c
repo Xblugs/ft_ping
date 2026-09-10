@@ -80,7 +80,7 @@ void	do_ping(t_ping *data)
 		// reset values before next round
 		unsigned short ping_left = data->flag_bag.count_val;
 		reset_stats(&data->stat_bag);
-		data->header.un.echo.sequence = htons(-1);
+		data->header.un.echo.sequence = 0;
 		int	wait = 1000;
 		if (FLAG(INTERVAL_FLAG))
 			wait = data->flag_bag.interval;

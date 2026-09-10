@@ -39,7 +39,7 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 		return (1);
 
 	// verify the ICMP id or socket id (depends on socket mode)
-	if (ntohs(icmp->un.echo.id) == ntohs(data->header.un.echo.id)
+	if ((icmp->un.echo.id == data->header.un.echo.id)
 			|| ntohs(icmp->un.echo.id) == data->sockid)
 	{
 		printf("Got pid=%u seq=%d\n",

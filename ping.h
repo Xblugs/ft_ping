@@ -27,7 +27,7 @@
 #if DEBUG == 1
     #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG]\t[" fmt "]\n" END, ##__VA_ARGS__)
 #else
-    #define DEBUG_PRINT(fmt, ...) do { } while ( 0 )
+    #define DEBUG_PRINT(fmt, ...) do { } while ( 0 )	// prevent empty conditions errors
 #endif
 
 #define PURPLE			"\e[1;95m"
@@ -42,6 +42,7 @@
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
 #define MSG_VERSION		"ft_ping 1.0\nWritten by cczerwin.\n"
 #define MSG_CNT_FLOOD	"ping: cannot flood; minimal interval allowed for user is 200ms\n"
+#define MSG_PATTERN_ERR "ping: error in pattern near "
 
 /*
 	The max packet size for IPv4 is 65535 bytes
@@ -123,10 +124,10 @@ typedef struct s_ping
 	uint16_t		sockid;
 	int				*ac;
 	char			**av;
-	char			packet[HEADER_SIZE + PAYLOAD_SIZE];
 	struct icmphdr	header;
-	char			*payload;
 	struct timeval	time;
+	char			packet[HEADER_SIZE + PAYLOAD_SIZE];
+	char			*payload;
 	char			ret;		// return values
 }	t_ping;
 

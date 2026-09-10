@@ -32,7 +32,9 @@ static int	unknown_flag(char *flag, char f);
 static int	parse_value_int(char *flag, t_ping *data, char type);
 static float parse_value_float(char *flag, t_ping *data, char type);
 static void	parse_value_hex(char *flag, t_ping *data, char type);
+
 static int	invalid_argument(char *flag, char f);
+static int	invalid_pattern(char *flag, char f);
 
 
 /*
@@ -373,7 +375,7 @@ static void	parse_value_hex(char *flag, t_ping *data, char type)
 	size_t len = strlen(flag);
 
 	// "-p" or "--pattern"
-	if (len == 1 || len == 9)
+	if ((len == 1 && type == 's' )|| (len == 9 && type == 'w'))
 	{
 		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
 		data->ret = 1;
@@ -381,6 +383,7 @@ static void	parse_value_hex(char *flag, t_ping *data, char type)
 	}
 	if (type == 'w')
 	{
+		len -= 8;
 		while (flag[0] != '=' && flag[0] != 0)
 			flag = &flag[1];
 	}
@@ -388,12 +391,12 @@ static void	parse_value_hex(char *flag, t_ping *data, char type)
 	{
 		if (!isxdigit(flag[i]))
 		{
-			invalid_argument(&flag[i], '\0');
+			invalid_pattern(&flag[i], '\0');
 			data->ret = 1;
 			return ;
 		}
 	}
-	
+
 	/*
 		data->ret is used as a cursor in single flags
 
@@ -405,16 +408,21 @@ static void	parse_value_hex(char *flag, t_ping *data, char type)
 		data->ret = -len;
 	len--;
 
+	size_t	i = 1, j = 0;
 	// 2 hexa symbol = 1 char --> 0x00 to 0xff
 	data->flag_bag.pattern_len = len / 2 + len % 2;
 	if (len % 2)
-		sscanf(&flag[1], "%1hhx", &data->flag_bag.pattern_val[0]);
-	for (size_t i = 0; i < len; i++)
 	{
-		sscanf(&flag[i * 2 + (len % 2) + 1], "%2hhx", &data->flag_bag.pattern_val[i + (len % 2)]);
+		sscanf(&flag[i], "%1hhx", &data->flag_bag.pattern_val[j++]);
+		i++;
 	}
-	DEBUG_PRINT("%s for %d pattern len [%s]",
-		data->flag_bag.pattern_val, data->flag_bag.pattern_len, flag);
+	while (i < len)
+	{
+		sscanf(&flag[i], "%2hhx", &data->flag_bag.pattern_val[j++]);
+		i += 2;
+	}
+	DEBUG_PRINT(" [%s] for %d pattern len [%s] ",
+		data->flag_bag.pattern_val, data->flag_bag.pattern_len, &flag[1]);
 }
 
 static int	invalid_argument(char *flag, char f)
@@ -423,5 +431,14 @@ static int	invalid_argument(char *flag, char f)
 		fprintf(stderr, "%s'%s'\n", MSG_INVAL_ARG, flag);
 	else
 		fprintf(stderr, "%s'%c'\n", MSG_INVAL_ARG, f);
+	return (1);
+}
+
+static int	invalid_pattern(char *flag, char f)
+{
+	if (flag != NULL)
+		fprintf(stderr, "%s%s\n", MSG_PATTERN_ERR, flag);
+	else
+		fprintf(stderr, "%s%c\n", MSG_PATTERN_ERR, f);
 	return (1);
 }
