@@ -98,8 +98,9 @@ void	do_ping(t_ping *data)
 			// receive
 			ping_receive(data, rp);
 			
-			usleep(wait * 1000);	// default interval value is 1 second
 			ping_left--;
+			if (ping_left)
+				usleep(wait * 1000);	// default interval value is 1 second
 		}
 		print_stats(&data->stat_bag, data->av[i]);
 		freeaddrinfo(res);

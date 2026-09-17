@@ -42,8 +42,8 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 	if ((icmp->un.echo.id == data->header.un.echo.id)
 			|| ntohs(icmp->un.echo.id) == data->sockid)
 	{
-		printf("Got pid=%u seq=%d\n",
-			ntohs(icmp->un.echo.id), ntohs(icmp->un.echo.sequence));
+		printf("Got pid=%u seq=%u\n",
+			ntohs(icmp->un.echo.id), icmp->un.echo.sequence);
 	}
 	else
 	{
@@ -97,7 +97,7 @@ void print_stats(t_stat *stats, char *host)
 {
     if (stats->rx_count == 0)
 	{
-        printf("no packet received\n");
+        printf("ping: no packet received\n");
         return ;
     }
 

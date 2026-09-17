@@ -155,22 +155,3 @@ Argument and their values can be written as `ping hostname -w 2` or `ping hostna
 `ping www.google.com --count 3`	**OK**  
 `ping www.google.com --count3` **Unrecognized option** 
 
-## Delete later ig
-
-Install wireshark?
-
-Sending:
-open a raw ICMP socket
-Make the ICMP request (type 8 = echo request)
-Send using sendto
-
-
-Receiving:
-(We see ALL the ICMP requests here)
-Identify which request concern us (type 0 = echo answer)
-Verify which PID is concerned
-Verify checksum
-Check the timestamp to calculate the round-trip time
-Check ttl
-Report result
-

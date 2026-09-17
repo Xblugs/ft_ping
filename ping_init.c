@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "ping.h"
+#include <unistd.h>
 
 // Static section
 static int	arg_parse(t_ping *data);
@@ -25,6 +26,11 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	data->ac = ac;
 	data->av = av;
 	signal(SIGINT, &signal_handler);
+
+	if (!getuid())
+		SETFLAG(ROOT_FLAG);
+	DEBUG_PRINT("root status: %d (id=%u)", FLAG(ROOT_FLAG), getuid());
+
 	if(arg_parse(data))
 		return (1);
 
@@ -56,10 +62,11 @@ static int arg_parse(t_ping *data)
 		}
 		flag_wrapper(data->av[i], data);
 
-		DEBUG_PRINT("Found %s\tflag = %#x", data->av[i], data->flag_bag.flags);
 		if (data->ret)
 			break;
 	}
+	if (DEBUG)
+		flag_type_debug(data);
 	if (!host && !data->ret)
 	{
 		data->ret = 1;
@@ -74,23 +81,21 @@ static int arg_parse(t_ping *data)
 */
 static int	socket_init(t_ping *data)
 {
-	// set timeout: default 1s
-	data->time = (struct timeval) {1, 0};
-	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &data->time, sizeof(struct timeval));
-
 	// data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW); // require ip header
 	data->sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP); // require root
-	if (data->sockfd >= 0)
-		data->flag_bag.flags |= ROOT_FLAG;
-	else
+	if (data->sockfd < 0)
 		data->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
 	if (data->sockfd < 0)
 	{
 		fprintf(stderr, "ping: failed to open socket\n");
 		return (1);
 	}
+	
+	// set timeout: default 1s
+	data->time = (struct timeval) {1, 0};
+	setsockopt(data->sockfd, SOL_SOCKET, SO_RCVTIMEO, &data->time, sizeof(struct timeval));
+	setsockopt(data->sockfd, IPPROTO_IP, IP_TTL, &data->flag_bag.ttl, sizeof(data->flag_bag.ttl));
 
-	DEBUG_PRINT("root status: %d", FLAG(ROOT_FLAG));
 	return (0);
 }
 

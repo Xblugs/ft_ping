@@ -47,3 +47,42 @@ void	icmp_type_debug(uint8_t type)
   		default:                  DEBUG_PRINT("Type: <0x%02x>", type); 		break;
   	}
 }
+
+void flag_type_debug(t_ping *data)
+{
+	if (!FLAG(NO_FLAG))
+	{
+		DEBUG_PRINT("No flags!");
+		return;
+	}
+	if (FLAG(FLOOD_FLAG))
+		DEBUG_PRINT("Flood flag");
+	if (FLAG(LOAD_FLAG))
+		DEBUG_PRINT("Load flag");
+	if (FLAG(NUMERIC_FLAG))
+		DEBUG_PRINT("Numeric flag");
+	if (FLAG(PATTERN_FLAG))
+		DEBUG_PRINT("Pattern flag");
+	if (FLAG(IGN_ROUTE_FLAG))
+		DEBUG_PRINT("Ignore routing flag");
+	if (FLAG(SIZE_FLAG))
+		DEBUG_PRINT("Size flag");
+	if (FLAG(STOP_FLAG))
+		DEBUG_PRINT("Stop/Timeout flag");
+	if (FLAG(WAIT_FLAG))
+		DEBUG_PRINT("Wait/Linger flag");
+	if (FLAG(TTL_FLAG))
+		DEBUG_PRINT("TTL flag");
+	if (FLAG(TYPE_FLAG))
+		DEBUG_PRINT("Type/ToS flag");
+	if (FLAG(TIMESTAMP_FLAG))
+		DEBUG_PRINT("IP timestamp flag");
+	if (FLAG(VERBOSE_FLAG))
+		DEBUG_PRINT("Verbose flag");
+	if (FLAG(COUNT_FLAG))
+		DEBUG_PRINT("Count flag");
+	if (FLAG(ROOT_FLAG))
+		DEBUG_PRINT("Root flag");
+	if (FLAG(INTERVAL_FLAG))
+		DEBUG_PRINT("Interval flag");
+}

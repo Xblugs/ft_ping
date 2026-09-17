@@ -51,12 +51,12 @@ static void assemble_packet(t_ping *data)
 	memcpy(data->payload, (void *) &data->time, sizeof(data->time));
 
 	// preload the pattern (0x00 if none) after the timestamp
-	for (size_t i = 0; (i < PAYLOAD_SIZE - sizeof(data->time)) & FLAG(PATTERN_FLAG); i++)
+	for (size_t i = 0; (i < PAYLOAD_SIZE - sizeof(data->time)) && FLAG(PATTERN_FLAG); i++)
 		data->payload[i + sizeof(data->time)] = data->flag_bag.pattern_val[i % data->flag_bag.pattern_len];
 
 	// checksum needs to be added after computation
 	struct icmphdr *packet_hdr = (struct icmphdr *)data->packet;
-	packet_hdr->un.echo.sequence = htons(data->header.un.echo.sequence);
+	// packet_hdr->un.echo.sequence = htons(data->header.un.echo.sequence);
     packet_hdr->checksum = checksum((void *) data->packet, sizeof(data->packet));
 
 	// set for next packet

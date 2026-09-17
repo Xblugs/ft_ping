@@ -7,12 +7,14 @@ ifeq ($(MAKECMDGOALS), yolo)
   $(eval CFLAGS=-O3)
 endif
 
-SRC			:=	ping_debug.c 	\
-				ping_flags.c 	\
-				ping_init.c 	\
-				ping_receive.c	\
-				ping_send.c 	\
-				ping_utils.c	\
+SRC			:=	ping_debug.c 			\
+				ping_flags_single.c 	\
+				ping_flags_word.c 		\
+				ping_flags.c	 		\
+				ping_init.c 			\
+				ping_receive.c			\
+				ping_send.c 			\
+				ping_utils.c			\
 				ping.c
 
 SOURCES		:= $(SRC)

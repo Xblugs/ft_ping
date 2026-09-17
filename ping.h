@@ -35,14 +35,18 @@
 
 // TODO: Make macro for some of thoses?
 #define MSG_REQ_ARG		"ping: option requires an argument -- "
-// ping: option '--pattern' requires an argument
-#define MSG_INVAL_ARG	"ping: invalid argument: "	// + "'arg'\n"
-#define MSG_INVAL_OPT	"ping: invalid option -- "	// + "'option'\n"
+#define MSG_REQ_ARG_W(arg)	printf("ping: option '%s' requires an argument\n", arg)
+
+#define MSG_INVAL_ARG	"ping: invalid argument: "				// + "'arg'\n"
+#define MSG_INVAL_OPT	"ping: invalid option -- "				// + "'option'\n"
 #define MSG_MISS_HOST	"ping: missing host operand\n"
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
 #define MSG_VERSION		"ft_ping 1.0\nWritten by cczerwin.\n"
-#define MSG_CNT_FLOOD	"ping: cannot flood; minimal interval allowed for user is 200ms\n"
-#define MSG_PATTERN_ERR "ping: error in pattern near "
+#define MSG_CNT_FLOOD	"ping: option value too small: " 		// + "'value'\n"
+#define MSG_PATTERN_ERR "ping: error in pattern near "			// + "'value'\n"
+#define MSG_VAL_TOO_BIG	"ping: option value too big: "			// + "'value'\n"
+#define MSG_VAL_TOO_SMALL "ping: option value too small: "		// + "'value'\n"
+#define TTL_EXCEED		"Time to live exceeded\n"
 
 /*
 	The max packet size for IPv4 is 65535 bytes
@@ -63,6 +67,8 @@
 // 16 flags <==> short
 // upgrade to int if needed
 #define FLAG(arg) 		((data->flag_bag.flags & arg) == arg)
+#define SETFLAG(arg) 	(data->flag_bag.flags = data->flag_bag.flags | arg)
+
 #define NO_FLAG			0
 #define FLOOD_FLAG		1		// -f, --flood
 #define LOAD_FLAG		2		// -l, --preload
@@ -99,7 +105,7 @@ typedef struct s_flag
 	unsigned char	pattern_len;
 	unsigned short	preload_val;
 	unsigned int	size_val;
-	unsigned short	ttl;
+	int				ttl;
 	unsigned short	timeout_val;	// -w, global timeout
 	unsigned char	timestamp_val;
 	unsigned char	type_val;
@@ -156,9 +162,24 @@ typedef struct s_ping
 // ping_debug.c
 void			address_format_debug(struct sockaddr_in *ip, char *av);
 void			icmp_type_debug(uint8_t type);
+void 			flag_type_debug(t_ping *data);
+
+//	ping_flags_single.c
+void			single_flag(char *flag, t_ping *data);
+
+//	ping_flags_word.c
+void			word_flag(char *flag, t_ping *data);
 
 //	ping_flags.c
 void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi_Wrappi");
+
+int				parse_value_int(char *flag, t_ping *data, char type);
+float 			parse_value_float(char *flag, t_ping *data, char type);
+void			parse_value_hex(char *flag, t_ping *data, char type);
+
+int				unknown_flag(char *flag, char f);
+int				invalid_argument(char *flag, char f);
+int				invalid_pattern(char *flag, char f);
 
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);
