@@ -14,6 +14,8 @@
 
 // Static section
 static void update_stats(t_stat *stats, double rtt);
+static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, struct addrinfo *rp);
+static int	manage_verbose(t_ping *data, struct iphdr *ip, struct icmphdr *icmp);
 
 /*
 	Placeholder for the reception part
@@ -23,32 +25,61 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 	struct iphdr 	*ip		= NULL;
 	struct icmphdr 	*icmp	= NULL;
 	char 	buffer[MAX_IP_SIZE];
+	ssize_t	process_status 	= 1;
 
-	// wait for answer or timeout
-	if (recvfrom(data->sockfd, buffer, MAX_IP_SIZE, NO_FLAG, rp->ai_addr, &rp->ai_addrlen) > 0)
+	while (process_status) 
 	{
+		/* 
+			Receive packet
+			--> Verify the checksum validity
+			--> Verify the type (ECHO_REPLY if everything went OK)
+		*/
+
+		ip 	 = NULL;
+		icmp = NULL;
+		if (FLAG(ROOT_FLAG))
+			process_status = recvfrom(data->sockfd, buffer, MAX_IP_SIZE, NO_FLAG, rp->ai_addr, &rp->ai_addrlen);
+		else
+		{
+			// i/o vector
+			struct iovec iov[1];
+			iov[0].iov_base = buffer;
+			iov[0].iov_len  = sizeof(buffer);
+		
+			// ttl goes here
+			char ctrl_buf[CMSG_SPACE(sizeof(int))];
+
+			struct msghdr msg  = {0};
+			msg.msg_name       = rp->ai_addr;
+			msg.msg_namelen    = sizeof(*rp->ai_addr);
+			msg.msg_iov        = iov;
+			msg.msg_iovlen     = 1;
+			msg.msg_control    = ctrl_buf;
+			msg.msg_controllen = sizeof(ctrl_buf);
+
+			process_status = recvmsg(data->sockfd, &msg, 0);
+
+			int ttl = -1; // Valeur par défaut si non trouvé
+
+			for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); 
+			     cmsg != NULL; 
+			     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+				
+			    if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_TTL) {
+			        ttl = *(int *)CMSG_DATA(cmsg);
+			        break;
+			    }
+			}
+		}
+
+		// recv timeout or recv error
+		if (process_status == -1)
+			return (1);
+
 		ip = (struct iphdr *) buffer;
 		icmp = (struct icmphdr *) (buffer + ip->ihl * 4);
-  		if (DEBUG)
-			icmp_type_debug(icmp->type);
-	}
-	else
-		return (1);
 
-	if (verify_checksum(icmp))
-		return (1);
-
-	// verify the ICMP id or socket id (depends on socket mode)
-	if ((icmp->un.echo.id == data->header.un.echo.id)
-			|| ntohs(icmp->un.echo.id) == data->sockid)
-	{
-		printf("Got pid=%u seq=%u\n",
-			ntohs(icmp->un.echo.id), icmp->un.echo.sequence);
-	}
-	else
-	{
-		DEBUG_PRINT("packet not for us");
-		return (1);
+		process_status = verify_packet(data, ip, icmp, rp);
 	}
 
 	char *payload = (void *)icmp + HEADER_SIZE;
@@ -56,6 +87,65 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 	update_stats(&data->stat_bag, timespan_ms(&data->time));
 
 	return (0);
+}
+
+/*
+	Verify the packet integrity to ensure this is our ping reply
+
+	Returns (0) only if we need to stop polling with recv
+	Returns (1) in case of wrong request type 
+		i.e. localhost test receive echo request before the reply
+*/
+static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, struct addrinfo *rp)
+{
+	if (DEBUG)
+		icmp_type_debug(icmp->type);
+
+	// kernel may already verify the chksum
+	if (verify_checksum(icmp))
+		return (0);
+
+	// verify the ICMP id or socket id (depends on socket mode)
+	if ((icmp->un.echo.id != data->header.un.echo.id)
+			&& ntohs(icmp->un.echo.id) != data->sockid)
+	{
+		DEBUG_PRINT("packet not for us");
+		return (1);
+	}
+
+	// 
+	if (icmp->type != ECHO_REPLY)
+	{
+		if (FLAG(VERBOSE_FLAG))
+			manage_verbose(data, ip, icmp);
+		return (1);
+	}
+
+	DEBUG_PRINT("Got pid=%u seq=%u\n",
+			ntohs(icmp->un.echo.id), icmp->un.echo.sequence);
+
+	char source_ip_str[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(ip->saddr), source_ip_str, INET_ADDRSTRLEN);
+	// 64 bytes from 172.217.22.78: icmp_seq=0 ttl=113 time=54.525 ms
+	if (FLAG(ROOT_FLAG))
+		printf("%ld bytes from %s: icmp_seq=%u, ttl=%u time=\n",
+				sizeof(data->packet), source_ip_str, icmp->un.echo.sequence, ip->ttl);
+	else
+		printf("%ld bytes from %s: icmp_seq=%u, ttl=%u time=\n",
+				sizeof(data->packet), source_ip_str, icmp->un.echo.sequence, ip->ttl);
+	return (0);
+}
+
+void print_ping_reply(struct sockaddr_in *from, struct icmphdr *icmp, int ttl, double rtt_ms, int bytes_received) {
+    char ip_str[INET_ADDRSTRLEN];
+    
+    // Conversion de l'adresse de l'expéditeur en texte
+    inet_ntop(AF_INET, &(from->sin_addr), ip_str, INET_ADDRSTRLEN);
+    
+    unsigned short seq = ntohs(icmp->un.echo.sequence);
+
+    printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.1f ms\n",
+           bytes_received, ip_str, seq, ttl, rtt_ms);
 }
 
 /*
@@ -73,6 +163,22 @@ int	verify_checksum(struct icmphdr *icmp)
 			DEBUG_PRINT("checksum not matching, packet dropped");
 		return (1);
 	}
+	return (0);
+}
+
+/*
+	ICMP codes can be found here:
+
+	https://www.iana.org/assignments/icmp-parameters#icmp-parameters-codes-0
+*/
+static int	manage_verbose(t_ping *data, struct iphdr *ip, struct icmphdr *icmp)
+{
+	/*
+		Type 3: Destination Unreachable (e.g., Port Unreachable, Network Unreachable).
+		Type 4: Source Quench (flow control).
+		Type 5: Redirect (tells the host to use a alternative router).
+		Type 11: Time Exceeded (TTL expired in transit)
+	*/
 	return (0);
 }
 

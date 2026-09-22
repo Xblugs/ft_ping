@@ -16,6 +16,7 @@
 // Static section
 static int	arg_parse(t_ping *data);
 static int	socket_init(t_ping *data);
+static void	get_sock_id(t_ping *data);
 static void	ICMP_header_init(t_ping *data);
 
 /*
@@ -90,6 +91,12 @@ static int	socket_init(t_ping *data)
 		fprintf(stderr, "ping: failed to open socket\n");
 		return (1);
 	}
+	else
+	{
+		int	opt = 1;	// ask to receive the ttl for DGRAM sockets
+		setsockopt(data->sockfd, SOL_IP, IP_RECVTTL, &opt, sizeof(opt));
+		get_sock_id(data);
+	}
 	
 	// set timeout: default 1s
 	data->time = (struct timeval) {1, 0};
@@ -97,6 +104,33 @@ static int	socket_init(t_ping *data)
 	setsockopt(data->sockfd, IPPROTO_IP, IP_TTL, &data->flag_bag.ttl, sizeof(data->flag_bag.ttl));
 
 	return (0);
+}
+
+/*
+	Kernels erase the ICMP id and use the socket name instead
+	We need it to check if the packet was intended for us
+	(kernel manage the receiving/filtering part but it's better to check)
+*/
+static void	get_sock_id(t_ping *data)
+{
+	struct sockaddr_in sin = {0};
+	socklen_t len = sizeof(sin);
+	sin.sin_family = AF_INET;
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_port = 0; // 0 tells the kernel to assign an ID immediately
+
+	if (bind(data->sockfd, (struct sockaddr *)&sin, len))
+	{
+		perror("ping: bind failed\n");
+		data->ret = 1;
+		return ;
+	}
+
+	if (getsockname(data->sockfd, (struct sockaddr *)&sin, &len) == 0)
+	    data->sockid = ntohs(sin.sin_port);
+	else
+		perror("getsockname");
+	DEBUG_PRINT("sockname is [%u]", data->sockid);
 }
 
 /*
@@ -110,7 +144,7 @@ static void	ICMP_header_init(t_ping *data)
 	data->header.code 				= 0;
 	data->header.type 				= ECHO_REQUEST;
 	data->header.checksum			= 0;
-	data->header.un.echo.id 		= htons((uint16_t) getpid());
+	data->header.un.echo.id 		= htons((uint16_t) (getpid() & 0xFFFF));
 	// data->header.un.echo.sequence	= htons(-1); // reset in the loop later on
 
 	// define the payload reserved space after the header

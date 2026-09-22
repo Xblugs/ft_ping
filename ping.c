@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "ping.h"
+#include <unistd.h>
 
 // Static section
 static void	clean_close(t_ping *data);
@@ -85,9 +86,19 @@ void	do_ping(t_ping *data)
 		if (FLAG(INTERVAL_FLAG))
 			wait = data->flag_bag.interval;
 		DEBUG_PRINT("wait for %u", wait);
+
 		struct sockaddr_in *ip = (struct sockaddr_in *) rp->ai_addr;
-		printf("PING %s (%s): %lu bytes of data\n",
-					data->av[i], inet_ntoa(ip->sin_addr), sizeof(data->packet));
+		printf("PING %s (%s): %lu data bytes",
+					data->av[i], inet_ntoa(ip->sin_addr), sizeof(data->packet) - HEADER_SIZE);
+
+		if (FLAG(VERBOSE_FLAG))
+		{
+			if (FLAG(ROOT_FLAG))
+				printf(", id %#06x = %0u", getpid() & 0xFFFF, getpid() & 0xFFFF);
+			else
+				printf(", id %#06x = %0u", data->sockid, data->sockid);
+		}
+		printf("\n");
 
 		while ((ping_left || !FLAG(COUNT_FLAG)) && !g_sig)
 		{
