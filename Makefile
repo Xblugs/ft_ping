@@ -8,6 +8,7 @@ ifeq ($(MAKECMDGOALS), yolo)
 endif
 
 SRC			:=	ping_debug.c 			\
+				ping_flags_parse.c		\
 				ping_flags_single.c 	\
 				ping_flags_word.c 		\
 				ping_flags.c	 		\
