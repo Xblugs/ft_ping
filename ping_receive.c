@@ -16,6 +16,7 @@
 static void update_stats(t_stat *stats, double rtt);
 static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, struct addrinfo *rp);
 static int	manage_verbose(t_ping *data, struct iphdr *ip, struct icmphdr *icmp);
+static void print_ping_reply(struct sockaddr_in *from, struct icmphdr *icmp, int ttl, double rtt_ms, int bytes_received);
 
 /*
 	Placeholder for the reception part
@@ -37,40 +38,40 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 
 		ip 	 = NULL;
 		icmp = NULL;
-		if (FLAG(ROOT_FLAG))
+		// if (FLAG(ROOT_FLAG))
 			process_status = recvfrom(data->sockfd, buffer, MAX_IP_SIZE, NO_FLAG, rp->ai_addr, &rp->ai_addrlen);
-		else
-		{
-			// i/o vector
-			struct iovec iov[1];
-			iov[0].iov_base = buffer;
-			iov[0].iov_len  = sizeof(buffer);
+		// else
+		// {
+		// 	// i/o vector
+		// 	struct iovec iov[1];
+		// 	iov[0].iov_base = buffer;
+		// 	iov[0].iov_len  = sizeof(buffer);
 		
-			// ttl goes here
-			char ctrl_buf[CMSG_SPACE(sizeof(int))];
+		// 	// ttl goes here
+		// 	char ctrl_buf[CMSG_SPACE(sizeof(int))];
 
-			struct msghdr msg  = {0};
-			msg.msg_name       = rp->ai_addr;
-			msg.msg_namelen    = sizeof(*rp->ai_addr);
-			msg.msg_iov        = iov;
-			msg.msg_iovlen     = 1;
-			msg.msg_control    = ctrl_buf;
-			msg.msg_controllen = sizeof(ctrl_buf);
+		// 	struct msghdr msg  = {0};
+		// 	msg.msg_name       = rp->ai_addr;
+		// 	msg.msg_namelen    = sizeof(*rp->ai_addr);
+		// 	msg.msg_iov        = iov;
+		// 	msg.msg_iovlen     = 1;
+		// 	msg.msg_control    = ctrl_buf;
+		// 	msg.msg_controllen = sizeof(ctrl_buf);
 
-			process_status = recvmsg(data->sockfd, &msg, 0);
+		// 	process_status = recvmsg(data->sockfd, &msg, 0);
 
-			int ttl = -1; // Valeur par défaut si non trouvé
+		// 	int ttl = -1;
 
-			for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); 
-			     cmsg != NULL; 
-			     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+		// 	for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); 
+		// 	     cmsg != NULL; 
+		// 	     cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 				
-			    if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_TTL) {
-			        ttl = *(int *)CMSG_DATA(cmsg);
-			        break;
-			    }
-			}
-		}
+		// 	    if (cmsg->cmsg_level == SOL_IP && cmsg->cmsg_type == IP_TTL) {
+		// 	        ttl = *(int *)CMSG_DATA(cmsg);
+		// 	        break;
+		// 	    }
+		// 	}
+		// }
 
 		// recv timeout or recv error
 		if (process_status == -1)
@@ -84,7 +85,16 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 
 	char *payload = (void *)icmp + HEADER_SIZE;
 	memcpy(&data->time, payload, sizeof(struct timeval));
-	update_stats(&data->stat_bag, timespan_ms(&data->time));
+
+	double rtt = timespan_ms(&data->time);
+	update_stats(&data->stat_bag, rtt);
+
+	if (FLAG(ROOT_FLAG))
+		print_ping_reply((struct sockaddr_in *)rp->ai_addr, icmp, ip->ttl, rtt, sizeof(data->packet));
+	else
+		print_ping_reply((struct sockaddr_in *)rp->ai_addr, icmp, -1, rtt, sizeof(data->packet));
+	if (FLAG(VERBOSE_FLAG))
+		manage_verbose(data, ip, icmp);
 
 	return (0);
 }
@@ -98,6 +108,9 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 */
 static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, struct addrinfo *rp)
 {
+	(void) ip;
+	(void) rp;
+
 	if (DEBUG)
 		icmp_type_debug(icmp->type);
 
@@ -113,36 +126,26 @@ static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, s
 		return (1);
 	}
 
-	// 
-	if (icmp->type != ECHO_REPLY)
-	{
-		if (FLAG(VERBOSE_FLAG))
-			manage_verbose(data, ip, icmp);
+	// pinging localhost
+	if (icmp->type == ECHO_REQUEST)
 		return (1);
-	}
 
 	DEBUG_PRINT("Got pid=%u seq=%u\n",
 			ntohs(icmp->un.echo.id), icmp->un.echo.sequence);
-
-	char source_ip_str[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(ip->saddr), source_ip_str, INET_ADDRSTRLEN);
-	// 64 bytes from 172.217.22.78: icmp_seq=0 ttl=113 time=54.525 ms
-	if (FLAG(ROOT_FLAG))
-		printf("%ld bytes from %s: icmp_seq=%u, ttl=%u time=\n",
-				sizeof(data->packet), source_ip_str, icmp->un.echo.sequence, ip->ttl);
-	else
-		printf("%ld bytes from %s: icmp_seq=%u, ttl=%u time=\n",
-				sizeof(data->packet), source_ip_str, icmp->un.echo.sequence, ip->ttl);
 	return (0);
 }
 
-void print_ping_reply(struct sockaddr_in *from, struct icmphdr *icmp, int ttl, double rtt_ms, int bytes_received) {
+/*
+	Reply form:
+		64 bytes from 172.217.22.78: icmp_seq=0 ttl=113 time=54.525 ms
+*/
+static void print_ping_reply(struct sockaddr_in *from, struct icmphdr *icmp, int ttl, double rtt_ms, int bytes_received)
+{
     char ip_str[INET_ADDRSTRLEN];
     
-    // Conversion de l'adresse de l'expéditeur en texte
     inet_ntop(AF_INET, &(from->sin_addr), ip_str, INET_ADDRSTRLEN);
     
-    unsigned short seq = ntohs(icmp->un.echo.sequence);
+    uint16_t seq = icmp->un.echo.sequence;
 
     printf("%d bytes from %s: icmp_seq=%u ttl=%d time=%.1f ms\n",
            bytes_received, ip_str, seq, ttl, rtt_ms);
@@ -179,6 +182,11 @@ static int	manage_verbose(t_ping *data, struct iphdr *ip, struct icmphdr *icmp)
 		Type 5: Redirect (tells the host to use a alternative router).
 		Type 11: Time Exceeded (TTL expired in transit)
 	*/
+
+	(void) data;
+	(void) ip;
+	(void) icmp;
+
 	return (0);
 }
 

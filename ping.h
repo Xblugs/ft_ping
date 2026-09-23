@@ -39,6 +39,7 @@
 
 #define MSG_INVAL_ARG	"ping: invalid argument: "				// + "'arg'\n"
 #define MSG_INVAL_OPT	"ping: invalid option -- "				// + "'option'\n"
+#define MSG_INVAL_OPT2	"ping: unrecognized option -- "			// same but used for -- options
 #define MSG_MISS_HOST	"ping: missing host operand\n"
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
 #define MSG_VERSION		"ft_ping 1.0\nWritten by cczerwin.\n"
@@ -180,6 +181,8 @@ void			parse_value_hex(char *flag, t_ping *data, char type);
 int				unknown_flag(char *flag, char f);
 int				invalid_argument(char *flag, char f);
 int				invalid_pattern(char *flag, char f);
+int 			print_usage(void);
+int 			print_help(void);
 
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);

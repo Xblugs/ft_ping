@@ -54,9 +54,9 @@ int	parse_value_int(char *flag, t_ping *data, char type)
 	if (type == 'w')
 		while (*flag != '=')
 			flag++;
-	if (strlen(flag) == 0)
+	if (strlen(&flag[1]) == 0)
 	{
-		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
+		fprintf(stderr, "%s'%s'\n", MSG_REQ_ARG, flag);
 		data->ret = 1;
 		return (-1);
 	}
@@ -64,8 +64,7 @@ int	parse_value_int(char *flag, t_ping *data, char type)
 	{
 		if (!isdigit(flag[i]))
 		{
-			invalid_argument(&flag[i], '\0');
-			data->ret = 1;
+			data->ret = invalid_argument(&flag[i], '\0');
 			return (-1);
 		}
 	}
@@ -112,8 +111,7 @@ float	parse_value_float(char *flag, t_ping *data, char type)
 				dot++;
 				continue ;
 			}
-			invalid_argument(&flag[i], '\0');
-			data->ret = 1;
+			data->ret = invalid_argument(&flag[i], '\0');
 			return (-1);
 		}
 	}
@@ -197,15 +195,16 @@ void	parse_value_hex(char *flag, t_ping *data, char type)
 
 	To be called on unknown flag to build the message
 		`-narnia`  --> invalid option 'a'
-		`--narnia` --> invalid option '--narnia'
+		`--narnia` --> unrecognized option '--narnia'
 	Returns 1 (cancel code)
 */
 int	unknown_flag(char *flag, char f)
 {
 	if (flag != NULL)
-		fprintf(stderr, "%s'%s'\n", MSG_INVAL_OPT, flag);
+		fprintf(stderr, "%s'%s'\n", MSG_INVAL_OPT2, flag);
 	else
 		fprintf(stderr, "%s'%c'\n", MSG_INVAL_OPT, f);
+	fprintf(stderr, "%s", MSG_MORE_INFO);
 	return (1);
 }
 
@@ -224,5 +223,40 @@ int	invalid_pattern(char *flag, char f)
 		fprintf(stderr, "%s%s\n", MSG_PATTERN_ERR, flag);
 	else
 		fprintf(stderr, "%s%c\n", MSG_PATTERN_ERR, f);
+	return (1);
+}
+
+/*
+	Print usage message
+	Returns (1) to reduce the line count in the flag files
+*/
+int print_usage(void) 
+{
+    printf("Usage: ping [OPTION...] HOST...\n");
+    printf("%s", MSG_MORE_INFO);
+	return (1);
+}
+
+/*
+	Print help message
+	Returns (1) to reduce the line count in the flag files
+*/
+int print_help(void)
+{
+    printf("Usage: ping [OPTION...] HOST...\n");
+    printf("Send ICMP ECHO_REQUEST packets to network hosts.\n\n");
+    
+    printf(" Options controlling ping behavior:\n");
+    printf("  -c, --count=NUMBER         Stop after sending NUMBER packets\n");
+    printf("  -i, --interval=NUMBER      Wait NUMBER seconds between sending each packet\n");
+    printf("  -n, --numeric              Do not resolve host addresses to names\n");
+    printf("  -p, --pattern=PATTERN      Fill packet with PATTERN (hex format)\n");
+    printf("      --ttl=NUMBER           Set Time to Live (TTL) on outbound packets\n");
+    printf("  -v, --verbose              Verbose output, display all received ICMP packets\n\n");
+    
+    printf(" Informative output:\n");
+    printf("  -V, --version              Display program version and exit\n");
+    printf("  -?, --help                 Give this help list\n");
+    printf("      --usage                Give a short usage message\n\n");
 	return (1);
 }

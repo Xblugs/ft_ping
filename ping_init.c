@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ping.h"
-#include <unistd.h>
 
 // Static section
 static int	arg_parse(t_ping *data);
@@ -31,6 +30,13 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	if (!getuid())
 		SETFLAG(ROOT_FLAG);
 	DEBUG_PRINT("root status: %d (id=%u)", FLAG(ROOT_FLAG), getuid());
+
+	// killswitch for unprivileged mode
+	if (!FLAG(ROOT_FLAG))
+	{
+		fprintf(stderr, "ping: socket: Operation not permitted\n");
+		return (1);
+	}
 
 	if(arg_parse(data))
 		return (1);

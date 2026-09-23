@@ -57,10 +57,6 @@ static void	single_flag_am(char *flag, t_ping *data)
 	switch (flag[0])
 	{
 	case 'c': // require parameter
-		if (strlen(flag) <= 1)
-		{
-
-		}
 		SETFLAG(COUNT_FLAG);
 		data->flag_bag.count_val = parse_value_int(flag, data, 's');
 		if (data->flag_bag.count_val == 0)
@@ -132,7 +128,7 @@ static void	single_flag_nz(char *flag, t_ping *data)
 		break;
 	
 	case 'V':
-		printf("ft_ping version 1.0, made by cczerwin\n");
+		printf("ft_ping version 1.0, made by cczerwin, based on inetutils-ping 2.6\n");
 		data->ret = 1;
 		break;
 
@@ -149,7 +145,7 @@ static void	single_flag_else(char *flag, t_ping *data)
 {
 	// implementation secrets
 	if (flag[0] == '?')
-		data->ret = 1; // call 911 and return 1
+		data->ret = print_help();
 	else
 		data->ret = unknown_flag(NULL, flag[0]);
 }

@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "ping.h"
-#include <unistd.h>
 
 // Static section
 static void	clean_close(t_ping *data);

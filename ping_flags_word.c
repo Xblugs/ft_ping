@@ -79,10 +79,7 @@ static void	word_flag_am(char *flag, t_ping *data)
 	// 	data->flag_bag.flags |= FLOOD_FLAG;
 	// }
 	else if (strcmp(flag, "--help") == 0)
-	{
-		// call help here
-		data->ret = 1;
-	}
+		data->ret = print_help();
 	// else if (strncmp(flag, "--linger", 8) == 0)
 	// {
 	// 	data->flag_bag.flags |= WAIT_FLAG;
@@ -132,6 +129,8 @@ static void	word_flag_nz(char *flag, t_ping *data)
 			SETFLAG(NUMERIC_FLAG);
 	// else if (strncmp(flag, "--size", 7) == 0)
 	// 	data->flag_bag.flags |= SIZE_FLAG;
+	else if (strcmp(flag, "--usage") == 0)
+		data->ret = print_usage();
 	else if (strcmp(flag, "--verbose") == 0)
 		SETFLAG(VERBOSE_FLAG);
 	else
@@ -145,7 +144,7 @@ static void	word_flag_else(char *flag, t_ping *data)
 {
 	// implementation secrets
 	if (strcmp(flag, "--911") == 0)
-		; // call 911 and return 1
+		data->ret = print_help();
 	else
 		data->ret = unknown_flag(flag, '\0');
 }
