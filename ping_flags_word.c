@@ -133,6 +133,8 @@ static void	word_flag_nz(char *flag, t_ping *data)
 		data->ret = print_usage();
 	else if (strcmp(flag, "--verbose") == 0)
 		SETFLAG(VERBOSE_FLAG);
+	else if (strcmp(flag, "--version") == 0)
+		data->ret = print_version();
 	else
 		data->ret = unknown_flag(flag, '\0');
 }

@@ -37,6 +37,7 @@
 #define MSG_REQ_ARG		"ping: option requires an argument -- "
 #define MSG_REQ_ARG_W(arg)	printf("ping: option '%s' requires an argument\n", arg)
 
+#define UNKNOWN_HOST	"ping: unknown host"
 #define MSG_INVAL_ARG	"ping: invalid argument: "				// + "'arg'\n"
 #define MSG_INVAL_OPT	"ping: invalid option -- "				// + "'option'\n"
 #define MSG_INVAL_OPT2	"ping: unrecognized option -- "			// same but used for -- options
@@ -183,6 +184,7 @@ int				invalid_argument(char *flag, char f);
 int				invalid_pattern(char *flag, char f);
 int 			print_usage(void);
 int 			print_help(void);
+int 			print_version(void);
 
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);

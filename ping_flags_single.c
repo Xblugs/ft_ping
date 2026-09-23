@@ -128,8 +128,7 @@ static void	single_flag_nz(char *flag, t_ping *data)
 		break;
 	
 	case 'V':
-		printf("ft_ping version 1.0, made by cczerwin, based on inetutils-ping 2.6\n");
-		data->ret = 1;
+		data->ret = print_version();
 		break;
 
 	default:

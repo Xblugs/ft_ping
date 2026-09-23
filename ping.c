@@ -66,7 +66,10 @@ void	do_ping(t_ping *data)
 
 		res = resolve_host(data, data->av[i]);
 		if (data->ret)
+		{
+			fprintf(stderr, "%s\n", UNKNOWN_HOST);
 			return ;
+		}
 
 		// find the right address from the getaddrinfo return
 		// for (rp = res; rp != NULL; rp = rp->ai_next)

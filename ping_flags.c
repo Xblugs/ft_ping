@@ -205,7 +205,7 @@ int	unknown_flag(char *flag, char f)
 	else
 		fprintf(stderr, "%s'%c'\n", MSG_INVAL_OPT, f);
 	fprintf(stderr, "%s", MSG_MORE_INFO);
-	return (1);
+	return (64);
 }
 
 int	invalid_argument(char *flag, char f)
@@ -258,5 +258,15 @@ int print_help(void)
     printf("  -V, --version              Display program version and exit\n");
     printf("  -?, --help                 Give this help list\n");
     printf("      --usage                Give a short usage message\n\n");
+	return (1);
+}
+
+/*
+	Print help message
+	Returns (1) to reduce the line count in the flag files
+*/
+int print_version(void) 
+{
+    printf("ft_ping version 1.0, made by cczerwin, based on inetutils-ping 2.6\n");
 	return (1);
 }

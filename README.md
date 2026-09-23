@@ -12,9 +12,10 @@ Done on Debian 13 (Trixie) with inetutils 2.6
 
 - The executable must be named ft_ping.
 - Except for the RTT line and the reverse DNS resolution, the result must have an indentation identical to the implementation from inetutils-2.0.  
+
 **inetutils-ping** is the portable GNU implementation, which is used on non-Linux or alternative GNU operating systems.
 
-**iputils-ping** is Linux only, but does have more features. If you are using Linux, you probably want iputils version of ping.
+**iputils-ping** is Linux only, but does have more features (like IPv6 support for exemple). If you are using Linux, you probably already have this version.
 
 - Manage the `-v` and `-?` options  
 `-v` or `--verbose` = Verbose output. ICMP packets other than ECHO_RESPONSE that are received are listed.  
@@ -40,17 +41,28 @@ Check yourself with `strace -e socket ping 8.8.8.8` *(sudo strace to see raw soc
 
 Manage additionals flags such as: ([inetutils-ping man page](https://manpages.debian.org/trixie/inetutils-ping/ping.1.en.html))
 
-- `-f` or `--flood` = [Flood ping](https://en.wikipedia.org/wiki/Ping_flood). Outputs packets as fast as they come back or one hundred times per second, whichever is more. For every ECHO_REQUEST sent a period `'.'` is printed, while for every ECHO_REPLY received a backspace is printed. This provides a rapid display of how many packets are being dropped. Only the super-user may use this option. This can be very hard on a network and should be used with caution.
+
+- `-c` or `--count <count>`  
+    Stop after sending (and receiving) count ECHO_RESPONSE packets.
+
+- `-f` or `--flood` = [Flood ping](https://en.wikipedia.org/wiki/Ping_flood).  
+Outputs packets as fast as they come back or one hundred times per second, whichever is more. For every ECHO_REQUEST sent a period `'.'` is printed, while for every ECHO_REPLY received a backspace is printed. This provides a rapid display of how many packets are being dropped. Only the super-user may use this option. This can be very hard on a network and should be used with caution.
+
+     
+- `-i` or `--interval <wait>`  
+    Wait wait seconds between sending each packet. The default is to wait for one second between each packet. This option is incompatible with the -f option.
 
 - `--ip-timestamp <flag>` = define timestamp, can be one of <tsonly|tsandaddr>  
 `tsonly` = store timestamps only.  
 `tsandaddr` = store timestamps plus each hop's address.  
 Note that some host block or ignore such paquets because IP timestamp is an old and rarely used IP option.
 
-- `-l <preload>` or `--preload <preload>` = If preload is specified, ping sends that many packets as fast as possible before falling into its normal mode of behavior.
+- `-l <preload>` or `--preload <preload>`  
+If preload is specified, ping sends that many packets as fast as possible before falling into its normal mode of behavior.
 
 ---
-- `-n` or `--numeric` = Numeric output only. No attempt will be made to lookup symbolic names for host addresses.
+- `-n` or `--numeric` = Numeric output only.  
+No attempt will be made to lookup symbolic names for host addresses.
 
 Ping exemples with and without the 'n' flag with the iputils-ping (inetutils-ping gave me twice the bottom result)
 ```shell
@@ -67,29 +79,36 @@ PING static.debian.org (194.177.211.216) 56(84) bytes of data.
 
 ---
 
-- `-p <pattern>` or `--pattern <pattern>`= You may specify up to 16 "pad" bytes to fill out the packet you send. This is useful for diagnosing data-dependent problems in a network. For example, "-p ff" will cause the sent packet to be filled with all ones.
+- `-p <pattern>` or `--pattern <pattern>`  
+You may specify up to 16 "pad" bytes to fill out the packet you send. This is useful for diagnosing data-dependent problems in a network. For example, "-p ff" will cause the sent packet to be filled with all ones.
 
-- `-r` or `--ignore-routing` = Bypass the normal routing tables and send directly to a host on an attached network. If the host is not on a directly-attached network, an error is returned. This option can be used to ping a local host through an interface that has no route through it (e.g., after the interface was dropped by routed(8)).
+- `-r` or `--ignore-routing`  
+Bypass the normal routing tables and send directly to a host on an attached network. If the host is not on a directly-attached network, an error is returned. This option can be used to ping a local host through an interface that has no route through it (e.g., after the interface was dropped by routed(8)).
 
-- `-s <packetsize>` or `--size <packetsize>` = Specifies the number of data bytes to be sent. The default is 56, which translates into 64 ICMP data bytes when combined with the 8 bytes of ICMP header data.
+- `-s <packetsize>` or `--size <packetsize>`  
+Specifies the number of data bytes to be sent. The default is 56, which translates into 64 ICMP data bytes when combined with the 8 bytes of ICMP header data.
 
 - `--ttl` = define the packet time to live (ttl)
 
-- `-T <num>` or `--tos <num>` = Set <num> as the packet type of service (ToS request specific treatment i.e packet priority).
+- `-T <num>` or `--tos <num>`  
+Set <num> as the packet type of service (ToS request specific treatment i.e packet priority).
 
-- `-w <deadline>` or `--timeout <deadline>`= stop after <deadline> in seconds (global timeout)
+- `-w <deadline>` or `--timeout <deadline>` 
+Stop after <deadline> in seconds (global timeout)
 
-- `-W <timeout>` or `--linger <timeout>` = time to wait for response (timeout per replies)
+- `-W <timeout>` or `--linger <timeout>`  
+Time to wait for response (timeout per replies)
 
 **Note:**
 - the flags -V, -usage, -echo are not considered as bonus  
-`-V` prints the ping version and exits.
+`-V` prints the ping version and exits.  
 `-usage` gives an exemple of command usage and argument order.  
 `-echo` Send ICMP_ECHO packets (default).  
 
-- two flags corresponding to the same feature (eg: -t and -type) are not considered as two bonuses  
-`-t or -type` is used to send type packets.
+- Two flags corresponding to the same feature (eg: -t and -type) are not considered as two bonuses  
+(`-t and -type` are used to send type packets)
 
+To see which one are implemented, use `-?`, `--help` or `--911`.
 
 ## Usage
 
@@ -155,3 +174,9 @@ Argument and their values can be written as `ping hostname -w 2` or `ping hostna
 `ping www.google.com --count 3`	**OK**  
 `ping www.google.com --count3` **Unrecognized option** 
 
+For simplicity this implementation accept either of those forms:
+- `ping localhost -c3`
+- `ping localhost --count=3`
+
+You can combine them for simple forms such as:
+- `ping localhost -nc3`
