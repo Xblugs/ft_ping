@@ -267,6 +267,6 @@ int print_help(void)
 */
 int print_version(void) 
 {
-    printf("ft_ping version 1.0, made by cczerwin, based on inetutils-ping 2.6\n");
+    printf("%s", MSG_VERSION);
 	return (1);
 }

@@ -43,7 +43,7 @@
 #define MSG_INVAL_OPT2	"ping: unrecognized option -- "			// same but used for -- options
 #define MSG_MISS_HOST	"ping: missing host operand\n"
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
-#define MSG_VERSION		"ft_ping 1.0\nWritten by cczerwin.\n"
+#define MSG_VERSION		"ft_ping version 1.0\nmade by cczerwin, based on inetutils-ping 2.6\n"
 #define MSG_CNT_FLOOD	"ping: option value too small: " 		// + "'value'\n"
 #define MSG_PATTERN_ERR "ping: error in pattern near "			// + "'value'\n"
 #define MSG_VAL_TOO_BIG	"ping: option value too big: "			// + "'value'\n"
