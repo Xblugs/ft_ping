@@ -41,6 +41,12 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	if(arg_parse(data))
 		return (1);
 
+	if (FLAG(STOP_FLAG)) // -w or --timeout
+	{
+		signal(SIGALRM, &signal_handler);
+		alarm(data->flag_bag.timeout_val);
+	}
+
 	ICMP_header_init(data);
 
 	if (socket_init(data))

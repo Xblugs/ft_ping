@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ping_flags.c                                       :+:      :+:    :+:   */
+/*   ping_flags_single.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cczerwin <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -115,9 +115,11 @@ static void	single_flag_nz(char *flag, t_ping *data)
 	// 	data->flag_bag.flags |= TYPE_FLAG;
 	// 	break;
 
-	// case 'w': // require parameter
-	// 	data->flag_bag.flags |= STOP_FLAG;
-	// 	break;
+	case 'w': // require parameter
+		SETFLAG(STOP_FLAG);
+		data->flag_bag.timeout_val = parse_value_int(flag, data, 's');
+		data->ret = check_timeout_val(data);
+		break;
 
 	// case 'W': // require parameter
 	// 	data->flag_bag.flags |= WAIT_FLAG;

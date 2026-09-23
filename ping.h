@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -102,15 +103,15 @@ typedef struct s_flag
 	unsigned short	flags;
 	unsigned short	count_val;
 	unsigned short	interval;		// -i, time between pings in ms
-	unsigned short	linger_val;		// -W, timeout per response
+	// unsigned short	linger_val;		// -W, timeout per response
 	unsigned char	pattern_val[16];
 	unsigned char	pattern_len;
-	unsigned short	preload_val;
-	unsigned int	size_val;
-	int				ttl;
-	unsigned short	timeout_val;	// -w, global timeout
-	unsigned char	timestamp_val;
-	unsigned char	type_val;
+	// unsigned short	preload_val;
+	// unsigned int	size_val;
+	unsigned int	ttl;
+	unsigned int	timeout_val;	// -w, global timeout
+	// unsigned char	timestamp_val;
+	// unsigned char	type_val;
 }	t_flag;
 
 typedef struct s_stat
@@ -166,6 +167,11 @@ void			address_format_debug(struct sockaddr_in *ip, char *av);
 void			icmp_type_debug(uint8_t type);
 void 			flag_type_debug(t_ping *data);
 
+//	ping_flags_parse.c
+int				parse_value_int(char *flag, t_ping *data, char type);
+float 			parse_value_float(char *flag, t_ping *data, char type);
+void			parse_value_hex(char *flag, t_ping *data, char type);
+
 //	ping_flags_single.c
 void			single_flag(char *flag, t_ping *data);
 
@@ -175,16 +181,13 @@ void			word_flag(char *flag, t_ping *data);
 //	ping_flags.c
 void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi_Wrappi");
 
-int				parse_value_int(char *flag, t_ping *data, char type);
-float 			parse_value_float(char *flag, t_ping *data, char type);
-void			parse_value_hex(char *flag, t_ping *data, char type);
-
 int				unknown_flag(char *flag, char f);
 int				invalid_argument(char *flag, char f);
 int				invalid_pattern(char *flag, char f);
 int 			print_usage(void);
 int 			print_help(void);
 int 			print_version(void);
+int 			check_timeout_val(t_ping *data);
 
 //	ping_init.c
 int				ping_init(int *ac, char **av, t_ping *data);

@@ -23,6 +23,8 @@ int	g_sig = 0;
 /*
 	If any signal is received, clean exit
 	Most signal default to terminating the process on receive
+
+	Expected signals are: SIGINT SIGALRM
 */
 void	signal_handler(int sig)
 {

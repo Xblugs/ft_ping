@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ping_flags.c                                       :+:      :+:    :+:   */
+/*   ping_flags_word.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cczerwin <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -17,6 +17,8 @@
 static void	word_flag_am(char *flag, t_ping *data);
 static void	word_flag_nz(char *flag, t_ping *data);
 static void	word_flag_else(char *flag, t_ping *data);
+
+static int check_ttl_val(t_ping *data);
 
 
 /*
@@ -95,8 +97,18 @@ static void	word_flag_nz(char *flag, t_ping *data)
 {
 	if (strncmp(flag, "--t", 3) == 0)
 	{
-	// 	if (strncmp(flag, "--timeout", 9) == 0)
-	// 		data->flag_bag.flags |= STOP_FLAG;
+		if (strncmp(flag, "--timeout", 9) == 0)
+		{
+			if (strlen(flag) <= 10)
+			{
+				MSG_REQ_ARG_W(flag);
+				data->ret = 1;
+				return ;
+			}
+			SETFLAG(STOP_FLAG);
+			data->flag_bag.timeout_val = parse_value_int(flag, data, 'w');
+			data->ret = check_timeout_val(data);
+		}
 	// 	else if (strncmp(flag, "--tos", 5) == 0)
 	// 		data->flag_bag.flags |= TYPE_FLAG;
 		if (strncmp(flag, "--ttl", 5) == 0)
@@ -108,11 +120,8 @@ static void	word_flag_nz(char *flag, t_ping *data)
 				return ;
 			}
 			SETFLAG(TTL_FLAG);
-			data->flag_bag.ttl = (char) parse_value_int(flag, data, 'w');
-			if (data->flag_bag.ttl > 255)
-				fprintf(stderr, "%s%d\n", MSG_VAL_TOO_BIG, data->flag_bag.ttl);
-			else if (data->flag_bag.ttl == 0)
-				fprintf(stderr, "%s%d\n", MSG_VAL_TOO_SMALL, data->flag_bag.ttl);
+			data->flag_bag.ttl = parse_value_int(flag, data, 'w');
+			data->ret = check_ttl_val(data);
 		}
 	}
 	// else if (strncmp(flag, "--p", 3) == 0)
@@ -149,4 +158,25 @@ static void	word_flag_else(char *flag, t_ping *data)
 		data->ret = print_help();
 	else
 		data->ret = unknown_flag(flag, '\0');
+}
+
+/*
+	0 < valid ttl < 256
+*/
+static int check_ttl_val(t_ping *data)
+{
+	if (data->ret)
+		return (data->ret);
+
+	if (data->flag_bag.ttl > 255)
+	{
+		fprintf(stderr, "%s%u\n", MSG_VAL_TOO_BIG, data->flag_bag.ttl);
+		return (1);
+	}
+	else if (data->flag_bag.ttl == 0)
+	{
+		fprintf(stderr, "%s%u\n", MSG_VAL_TOO_SMALL, data->flag_bag.ttl);
+		return (1);
+	}
+	return (0);
 }

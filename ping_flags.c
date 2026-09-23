@@ -13,22 +13,9 @@
 #include "ping.h"
 
 // Static section
-// void	flag_wrapper(char *flag, t_ping *data);
-
-// int		parse_value_int(char *flag, t_ping *data, char type);
-// float 	parse_value_float(char *flag, t_ping *data, char type);
-// void	parse_value_hex(char *flag, t_ping *data, char type);
-
-// int		unknown_flag(char *flag, char f);
-// int		invalid_argument(char *flag, char f);
-// int		invalid_pattern(char *flag, char f);
-
 
 /*
-	This file handles mostly the value parsing and the error messages
-
-	Managed flags: -c, -i, -n, -p, -V
-		--count, --interval, --numeric, --pattern
+	This file handles mostly the prints and error messages
 */
 
 /*
@@ -45,149 +32,6 @@ void	flag_wrapper(char *flag, t_ping *data)
 		word_flag(flag, data);		// i.e --count=5
 	else
 		single_flag(flag, data);	// i.e -c5
-}
-
-int	parse_value_int(char *flag, t_ping *data, char type)
-{
-	int value = 0;
-
-	if (type == 'w')
-		while (*flag != '=')
-			flag++;
-	if (strlen(&flag[1]) == 0)
-	{
-		fprintf(stderr, "%s'%s'\n", MSG_REQ_ARG, flag);
-		data->ret = 1;
-		return (-1);
-	}
-	for (size_t i = 1; flag[i] != 0; i++)
-	{
-		if (!isdigit(flag[i]))
-		{
-			data->ret = invalid_argument(&flag[i], '\0');
-			return (-1);
-		}
-	}
-		
-	/*
-		data->ret is used as a cursor in single flags
-
-		parametric flags don't allow for another flag
-			after them in the same string = skip the rest
-	*/
-	if (type == 's')
-	{
-		int len = strlen(flag);
-		data->ret = -len;
-	}
-	value = atoi(&flag[1]);
-
-	return (value);
-}
-
-/*
-	Some flags can receive float arguments like -i for exemple
-*/
-float	parse_value_float(char *flag, t_ping *data, char type)
-{
-	float value = 0;
-
-	if (type == 'w')
-		while (*flag != '=')
-			flag++;
-	if (strlen(&flag[1]) == 0)
-	{
-		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
-		data->ret = 1;
-		return (-1);
-	}
-	char dot = 0;
-	for (size_t i = 1; flag[i] != 0; i++)
-	{
-		if (!isdigit(flag[i]))
-		{
-			if (flag[i] == '.' && dot != 2)
-			{
-				dot++;
-				continue ;
-			}
-			data->ret = invalid_argument(&flag[i], '\0');
-			return (-1);
-		}
-	}
-		
-	/*
-		data->ret is used as a cursor in single flags
-
-		parametric flags don't allow for another flag
-			after them in the same string = skip the rest
-	*/
-	if (type == 's')
-	{
-		int len = strlen(flag);
-		data->ret = -len;
-	}
-	value = atof(&flag[1]);
-
-	return (value);
-}
-
-/*
-	Used only for the pattern flag
-*/
-void	parse_value_hex(char *flag, t_ping *data, char type)
-{
-	size_t len = strlen(flag);
-
-	// "-p" or "--pattern"
-	if ((len == 1 && type == 's' )|| (len <= 10 && type == 'w'))
-	{
-		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
-		data->ret = 1;
-		return ;
-	}
-	if (type == 'w')
-	{
-		len -= 8;
-		while (flag[0] != '=' && flag[0] != 0)
-			flag = &flag[1];
-	}
-	for (size_t i = 1; flag[i] != 0; i++)
-	{
-		if (!isxdigit(flag[i]))
-		{
-			invalid_pattern(&flag[i], '\0');
-			data->ret = 1;
-			return ;
-		}
-	}
-
-	/*
-		data->ret is used as a cursor in single flags
-
-		parametric flags don't allow for another flag
-			after them in the same string = skip the rest
-	*/
-	
-	if (type == 's')
-		data->ret = -len;
-	len--;
-
-	size_t	i = 1, j = 0;
-	// 2 hexa symbol = 1 char --> 0x00 to 0xff
-	data->flag_bag.pattern_len = len / 2 + len % 2;
-	if (len % 2)
-	{
-		sscanf(&flag[i], "%1hhx", &data->flag_bag.pattern_val[j++]);
-		i++;
-	}
-	while (i < len)
-	{
-		sscanf(&flag[i], "%2hhx", &data->flag_bag.pattern_val[j++]);
-		i += 2;
-	}
-	DEBUG_PRINT(" [%s] for %d pattern len [%s] ",
-		data->flag_bag.pattern_val, data->flag_bag.pattern_len, &flag[1]);
 }
 
 /*
@@ -252,12 +96,15 @@ int print_help(void)
     printf("  -n, --numeric              Do not resolve host addresses to names\n");
     printf("  -p, --pattern=PATTERN      Fill packet with PATTERN (hex format)\n");
     printf("      --ttl=NUMBER           Set Time to Live (TTL) on outbound packets\n");
-    printf("  -v, --verbose              Verbose output, display all received ICMP packets\n\n");
+    printf("  -v, --verbose              Verbose output, display all received ICMP packets\n");
+	printf("  -w, --timeout=NUMBER       Stop after NUMBER seconds\n");
+	printf("\n");
     
     printf(" Informative output:\n");
     printf("  -V, --version              Display program version and exit\n");
     printf("  -?, --help                 Give this help list\n");
-    printf("      --usage                Give a short usage message\n\n");
+    printf("      --usage                Give a short usage message\n");
+	printf("\n");
 	return (1);
 }
 
@@ -269,4 +116,25 @@ int print_version(void)
 {
     printf("%s", MSG_VERSION);
 	return (1);
+}
+
+/*
+	0 < valid timeout <= INT_MAX
+*/
+int check_timeout_val(t_ping *data)
+{
+	if (data->ret)
+		return (data->ret);
+
+	if (data->flag_bag.timeout_val > INT_MAX)
+	{
+		fprintf(stderr, "%s%u\n", MSG_VAL_TOO_BIG, data->flag_bag.timeout_val);
+		return (1);
+	}
+	else if (data->flag_bag.timeout_val == 0)
+	{
+		fprintf(stderr, "%s%u\n", MSG_VAL_TOO_SMALL, data->flag_bag.timeout_val);
+		return (1);
+	}
+	return (0);
 }
