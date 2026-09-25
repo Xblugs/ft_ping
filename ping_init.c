@@ -35,15 +35,15 @@ int	ping_init(int *ac, char **av, t_ping *data)
 		SETFLAG(ROOT_FLAG);
 	DEBUG_PRINT("root status: %d (id=%u)", FLAG(ROOT_FLAG), getuid());
 
+	if(arg_parse(data))
+		return (1);
+
 	// killswitch for unprivileged mode
 	if (!FLAG(ROOT_FLAG))
 	{
 		fprintf(stderr, "ping: socket: Operation not permitted\n");
 		return (1);
 	}
-
-	if(arg_parse(data))
-		return (1);
 
 	if (FLAG(STOP_FLAG)) // -w or --timeout
 	{
