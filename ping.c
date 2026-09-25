@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #include "ping.h"
 
 // Static section

@@ -3,38 +3,25 @@
 // command to check if a header is part of the standard lib
 // echo "#include <netinet/ip_icmp.h>" | gcc -x c -E - | grep "netinet/ip_icmp.h"
 // libc equivalent of <linux/icmp.h>, gives the icmphdr struct
-#include <arpa/inet.h>
-#include <ctype.h>
-#include <errno.h>
-#include <limits.h>
-#include <math.h>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <netinet/ip_icmp.h>
-#include <signal.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 // Debug mode & colorful prints
 // This is not the verbose flag
 #ifndef DEBUG
-# define DEBUG			0
+	#define DEBUG		0
 #endif
 
 // this macro was vibe coded
 #if DEBUG == 1
     #define DEBUG_PRINT(fmt, ...) fprintf(stderr, PURPLE "[DEBUG]\t[" fmt "]\n" END, ##__VA_ARGS__)
+	#define PURPLE			"\e[1;95m"
+	#define END				"\e[0m"
 #else
     #define DEBUG_PRINT(fmt, ...) do { } while ( 0 )	// prevent empty conditions errors
 #endif
-
-#define PURPLE			"\e[1;95m"
-#define END				"\e[0m"
 
 // TODO: Make macro for some of thoses?
 #define MSG_REQ_ARG		"ping: option requires an argument -- "
@@ -63,9 +50,6 @@
 #define MAX_IP_SIZE		65535
 #define HEADER_SIZE		8	// ICMP Header is 8 bytes
 #define PAYLOAD_SIZE	56	// 32 is standard for windows, 56 for Unix
-
-#define ECHO_REPLY		0
-#define ECHO_REQUEST	8
 
 #define MAX_PATTERN_BYTES 16
 

@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <arpa/inet.h>
+#include <math.h>
+
 #include "ping.h"
 
 // Static section
@@ -86,7 +89,7 @@ int	ping_receive(t_ping *data, struct addrinfo *rp)
 
 	double rtt = 0;
 
-	if (icmp->type == ECHO_REPLY)
+	if (icmp->type == ICMP_ECHOREPLY)
 	{
 		char *payload = (void *)icmp + HEADER_SIZE;
 		memcpy(&data->time, payload, sizeof(struct timeval));
@@ -128,13 +131,13 @@ static int	verify_packet(t_ping *data, struct iphdr *ip, struct icmphdr *icmp, s
 		return (0);
 
 	// pinging localhost
-	if (icmp->type == ECHO_REQUEST)
+	if (icmp->type == ICMP_ECHO)
 		return (1);
 
 	// verify the ICMP id or socket id (depends on socket mode)
 	if ((icmp->un.echo.id != data->header.un.echo.id)
 			&& ntohs(icmp->un.echo.id) != data->sockid
-			&& icmp->type == ECHO_REPLY)
+			&& icmp->type == ICMP_ECHOREPLY)
 	{
 		DEBUG_PRINT("packet not for us: id=%d hdr=%d ntohs_id=%d sockid=%d",
 			icmp->un.echo.id, data->header.un.echo.id, ntohs(icmp->un.echo.id), data->sockid);

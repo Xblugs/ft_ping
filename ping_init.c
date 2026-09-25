@@ -10,6 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <arpa/inet.h>
+#include <signal.h>
+#include <unistd.h>
+
 #include "ping.h"
 
 // Static section
@@ -154,7 +158,7 @@ static void	get_sock_id(t_ping *data)
 static void	ICMP_header_init(t_ping *data)
 {
 	data->header.code 				= 0;
-	data->header.type 				= ECHO_REQUEST;
+	data->header.type 				= ICMP_ECHO;
 	data->header.checksum			= 0;
 	data->header.un.echo.id 		= htons((uint16_t) (getpid() & 0xFFFF));
 	// data->header.un.echo.sequence	= htons(-1); // reset in the loop later on
