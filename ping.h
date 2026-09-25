@@ -22,7 +22,9 @@
 
 // Debug mode & colorful prints
 // This is not the verbose flag
-#define DEBUG			0
+#ifndef DEBUG
+# define DEBUG			0
+#endif
 
 // this macro was vibe coded
 #if DEBUG == 1
