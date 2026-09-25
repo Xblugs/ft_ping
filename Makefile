@@ -1,10 +1,13 @@
 
 CC			:= cc
-CFLAGS		:= -Wextra -Wall -Werror -O3
+CFLAGS		:= -Wextra -Wall -Werror -O3 -flto -pipe
 LIB			:= -lm
 
+# -flto = link at the end = more inlining
+# -pipe = use a pipe instead of temp files during cc
+
 ifeq ($(MAKECMDGOALS), yolo)
-  $(eval CFLAGS=-O3)
+  $(eval CFLAGS=-O3 -flto -pipe)
 endif
 
 SRC			:=	ping_debug.c 			\
