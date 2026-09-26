@@ -25,12 +25,14 @@
 
 // TODO: Make macro for some of thoses?
 #define MSG_REQ_ARG		"ping: option requires an argument -- "
-#define MSG_REQ_ARG_W(arg)	printf("ping: option '%s' requires an argument\n", arg)
+#define MSG_REQ_ARG_S(arg)	fprintf(stderr, "ping: option requires an argument -- '%s'\n", arg)
+#define MSG_REQ_ARG_W(arg)	fprintf(stderr, "ping: option '%s' requires an argument\n", arg)
 
 #define UNKNOWN_HOST	"ping: unknown host"
+#define MSG_INVAL_VAL(flag, err) fprintf(stderr, "ping: invalid value (`%s' near `%s')\n", flag, err)
 #define MSG_INVAL_ARG	"ping: invalid argument: "				// + "'arg'\n"
 #define MSG_INVAL_OPT	"ping: invalid option -- "				// + "'option'\n"
-#define MSG_INVAL_OPT2	"ping: unrecognized option -- "			// same but used for -- options
+#define MSG_INVAL_OPT2	"ping: unrecognized option "			// same but used for -- options
 #define MSG_MISS_HOST	"ping: missing host operand\n"
 #define MSG_MORE_INFO	"Try 'ping --help' or 'ping --usage' for more information.\n"
 #define MSG_VERSION		"ft_ping version 1.0\nmade by cczerwin, based on inetutils-ping 2.6\n"
@@ -168,11 +170,14 @@ void			word_flag(char *flag, t_ping *data);
 void			flag_wrapper(char *flag, t_ping *data)		__asm__("Flaggi_Wrappi");
 
 int				unknown_flag(char *flag, char f);
+int				invalid_value(char *flag, char *err);
 int				invalid_argument(char *flag, char f);
 int				invalid_pattern(char *flag, char f);
 int 			print_usage(void);
 int 			print_help(void);
 int 			print_version(void);
+void 			check_count_val(t_ping *data);
+void			check_interval_val(t_ping *data);
 int 			check_timeout_val(t_ping *data);
 
 //	ping_init.c

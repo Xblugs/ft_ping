@@ -59,8 +59,7 @@ static void	single_flag_am(char *flag, t_ping *data)
 	case 'c': // require parameter
 		SETFLAG(COUNT_FLAG);
 		data->flag_bag.count_val = parse_value_int(flag, data, 's');
-		if (data->flag_bag.count_val == 0)
-			data->flag_bag.count_val--;
+		check_count_val(data);
 		break;
 
 	// case 'f':
@@ -70,11 +69,7 @@ static void	single_flag_am(char *flag, t_ping *data)
 	case 'i':
 		SETFLAG(INTERVAL_FLAG);
 		data->flag_bag.interval = parse_value_float(flag, data, 's') * 1000;
-		if (!FLAG(ROOT_FLAG) && data->flag_bag.interval < 200 )
-		{
-			fprintf(stderr, "%s%.3f\n", MSG_CNT_FLOOD, (float) data->flag_bag.interval / 1000);
-			data->ret = 1;
-		}
+		check_interval_val(data);
 		break;
 
 	// case 'l': // require parameter

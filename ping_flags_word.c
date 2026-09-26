@@ -46,35 +46,18 @@ static void	word_flag_am(char *flag, t_ping *data)
 	// 		data->flag_bag.flags |= IGN_ROUTE_FLAG;
 		if (strncmp(flag, "--interval", 10) == 0)
 		{
-			if (strlen(flag) <= 11)
-			{
-				MSG_REQ_ARG_W(flag);
-				data->ret = 1;
-				return ;
-			}
 			SETFLAG(INTERVAL_FLAG);
 			data->flag_bag.interval = parse_value_float(flag, data, 'w') * 1000;
-			if (!FLAG(ROOT_FLAG) && data->flag_bag.interval < 200 )
-			{
-				fprintf(stderr, "%s", MSG_CNT_FLOOD);
-				data->ret = 1;
-			}
+			check_interval_val(data);
 		}
 	// 	else if (strncmp(flag, "--ip-timestamp", 14) == 0)
 	// 		data->flag_bag.flags |= TIMESTAMP_FLAG;
 	}
 	else if (strncmp(flag, "--count", 7) == 0)
 	{
-		if (strlen(flag) <= 8)
-		{
-			MSG_REQ_ARG_W(flag);
-			data->ret = 1;
-			return ;
-		}
 		SETFLAG(COUNT_FLAG);
 		data->flag_bag.count_val = parse_value_int(flag, data, 'w');
-		if (data->flag_bag.count_val == 0)
-			data->flag_bag.count_val--;
+		check_count_val(data);
 	}
 	// else if (strcmp(flag, "--flood") == 0)
 	// {
@@ -99,12 +82,6 @@ static void	word_flag_nz(char *flag, t_ping *data)
 	{
 		if (strncmp(flag, "--timeout", 9) == 0)
 		{
-			if (strlen(flag) <= 10)
-			{
-				MSG_REQ_ARG_W(flag);
-				data->ret = 1;
-				return ;
-			}
 			SETFLAG(STOP_FLAG);
 			data->flag_bag.timeout_val = parse_value_int(flag, data, 'w');
 			data->ret = check_timeout_val(data);
@@ -113,12 +90,6 @@ static void	word_flag_nz(char *flag, t_ping *data)
 	// 		data->flag_bag.flags |= TYPE_FLAG;
 		if (strncmp(flag, "--ttl", 5) == 0)
 		{
-			if (strlen(flag) <= 6)
-			{
-				MSG_REQ_ARG_W(flag);
-				data->ret = 1;
-				return ;
-			}
 			SETFLAG(TTL_FLAG);
 			data->flag_bag.ttl = parse_value_int(flag, data, 'w');
 			data->ret = check_ttl_val(data);
@@ -128,6 +99,12 @@ static void	word_flag_nz(char *flag, t_ping *data)
 	// {
 	else if (strncmp(flag, "--pattern", 9) == 0)
 	{
+		if (strlen(flag) <= 10)
+		{
+			MSG_REQ_ARG_W(flag);
+			data->ret = 1;
+			return ;
+		}
 		SETFLAG(PATTERN_FLAG);
 		parse_value_hex(flag, data, 'w');
 	}
@@ -156,6 +133,8 @@ static void	word_flag_else(char *flag, t_ping *data)
 	// implementation secrets
 	if (strcmp(flag, "--911") == 0)
 		data->ret = print_help();
+	else if (strcmp(flag, "--") == 0)
+		return ;
 	else
 		data->ret = unknown_flag(flag, '\0');
 }

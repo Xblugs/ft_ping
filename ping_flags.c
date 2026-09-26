@@ -54,15 +54,34 @@ int	unknown_flag(char *flag, char f)
 	return (64);
 }
 
+/*
+	Parsing errors
+	i.e. -c1a, --count==1, --count=hello
+*/
+int	invalid_value(char *flag, char *err)
+{
+	MSG_INVAL_VAL(flag, err);
+	return (1);
+}
+
+/*
+	Argument value is invalid
+	--> can be replaced by value too big/small messages
+	i.e. --ttl=2000
+*/
 int	invalid_argument(char *flag, char f)
 {
 	if (flag != NULL)
 		fprintf(stderr, "%s'%s'\n", MSG_INVAL_ARG, flag);
 	else
 		fprintf(stderr, "%s'%c'\n", MSG_INVAL_ARG, f);
+	fprintf(stderr, "%s", MSG_MORE_INFO);
 	return (1);
 }
 
+/*
+	Argument value is not hexadecimal
+*/
 int	invalid_pattern(char *flag, char f)
 {
 	if (flag != NULL)
@@ -118,6 +137,32 @@ int print_version(void)
 {
     printf("%s", MSG_VERSION);
 	return (1);
+}
+
+/*
+	0 means infinite
+	Main loop decrement until 0
+	--> swap to -1
+*/
+void check_count_val(t_ping *data)
+{
+	if (data->flag_bag.count_val == 0)
+			data->flag_bag.count_val--;
+}
+
+/*
+	non-root can't go lower than 200ms
+*/
+void check_interval_val(t_ping *data)
+{
+	if (data->ret)
+		return ;
+
+	if (!FLAG(ROOT_FLAG) && data->flag_bag.interval < 200 )
+	{
+		fprintf(stderr, "%s%f\n", MSG_CNT_FLOOD, (float) data->flag_bag.interval / 1000);
+		data->ret = 1;
+	}
 }
 
 /*

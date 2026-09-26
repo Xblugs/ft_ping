@@ -15,6 +15,9 @@
 
 #include "ping.h"
 
+// Static section
+static int parse_prep(char *flag, t_ping *data, char type);
+
 /*
     Those value parsing functions are made using the same blueprint
 
@@ -30,6 +33,37 @@
 */
 
 /*
+	Brings --option=argument to the argument part for parsing
+		and gets rid of arg-less options
+*/
+static int parse_prep(char *flag, t_ping *data, char type)
+{
+	int i = 0, j = (type == 's');
+
+	if (type == 'w')
+	{
+		while (flag[i] != '=' && flag[i] != 0)
+			i++;
+
+		// comment to consider no arg as correct input
+		if (flag[i] == '=')
+			i++;
+	}
+
+	if (strlen(&flag[i+j]) == 0)
+	{
+		if (type == 's')
+			MSG_REQ_ARG_S(flag);
+		else
+			MSG_REQ_ARG_W(flag);
+		fprintf(stderr, "%s", MSG_MORE_INFO);
+		data->ret = 1;
+		return (-1);
+	}
+	return (i);
+}
+
+/*
 	data->ret is used as a cursor in single flags
 
 	parametric flags don't allow for another flag
@@ -38,22 +72,17 @@
 
 int	parse_value_int(char *flag, t_ping *data, char type)
 {
-	int value = 0;
+	int value = parse_prep(flag, data, type);
 
-	if (type == 'w')
-		while (*flag != '=')
-			flag++;
-	if (strlen(&flag[1]) == 0)
-	{
-		fprintf(stderr, "%s'%s'\n", MSG_REQ_ARG, flag);
-		data->ret = 1;
+	if (value == -1)
 		return (-1);
-	}
-	for (size_t i = 1; flag[i] != 0; i++)
+	flag = flag + value;
+
+	for (size_t i = (type == 's'); flag[i] != 0; i++)
 	{
 		if (!isdigit(flag[i]))
 		{
-			data->ret = invalid_argument(&flag[i], '\0');
+			data->ret = invalid_value(&flag[(type == 's')], &flag[i]);
 			return (-1);
 		}
 	}
@@ -63,7 +92,7 @@ int	parse_value_int(char *flag, t_ping *data, char type)
 		int len = strlen(flag);
 		data->ret = -len;
 	}
-	value = atoi(&flag[1]);
+	value = atoi(&flag[(type == 's')]);
 
 	return (value);
 }
@@ -73,28 +102,23 @@ int	parse_value_int(char *flag, t_ping *data, char type)
 */
 float	parse_value_float(char *flag, t_ping *data, char type)
 {
-	float value = 0;
+	float value = parse_prep(flag, data, type);
 
-	if (type == 'w')
-		while (*flag != '=')
-			flag++;
-	if (strlen(&flag[1]) == 0)
-	{
-		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
-		data->ret = 1;
+	if (value == -1)
 		return (-1);
-	}
+	flag = flag + (int) value;
+
 	char dot = 0;
-	for (size_t i = 1; flag[i] != 0; i++)
+	for (size_t i = (type == 's'); flag[i] != 0; i++)
 	{
 		if (!isdigit(flag[i]))
 		{
-			if (flag[i] == '.' && dot != 2)
+			if (flag[i] == '.' && !dot)
 			{
 				dot++;
 				continue ;
 			}
-			data->ret = invalid_argument(&flag[i], '\0');
+			data->ret = invalid_value(&flag[(type == 's')], &flag[i]);
 			return (-1);
 		}
 	}
@@ -104,7 +128,7 @@ float	parse_value_float(char *flag, t_ping *data, char type)
 		int len = strlen(flag);
 		data->ret = -len;
 	}
-	value = atof(&flag[1]);
+	value = atof(&flag[(type == 's')]);
 
 	return (value);
 }
@@ -114,20 +138,14 @@ float	parse_value_float(char *flag, t_ping *data, char type)
 */
 void	parse_value_hex(char *flag, t_ping *data, char type)
 {
-	size_t len = strlen(flag);
-
-	// "-p" or "--pattern"
-	if ((len == 1 && type == 's' )|| (len <= 10 && type == 'w'))
+	if (type == 'w')
+		while (flag[0] != '=')
+			flag = &flag[1];
+	if (strlen(&flag[1]) == 0)
 	{
-		fprintf(stderr, "%s%s\n", MSG_REQ_ARG, flag);
+		MSG_REQ_ARG_S(flag);
 		data->ret = 1;
 		return ;
-	}
-	if (type == 'w')
-	{
-		len -= 8;
-		while (flag[0] != '=' && flag[0] != 0)
-			flag = &flag[1];
 	}
 	for (size_t i = 1; flag[i] != 0; i++)
 	{
@@ -139,6 +157,8 @@ void	parse_value_hex(char *flag, t_ping *data, char type)
 		}
 	}
 	
+	// manage the pattern & eventual padding
+	size_t len = strlen(flag);
 	if (type == 's')
 		data->ret = -len;
 	len--;
