@@ -57,7 +57,7 @@ yolo: $(OBJ) # ignore warnings
 
 $(ASM_DIR)/%.s: %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -S $< -o $@
+	$(CC) -S $< -o $@
 
 asm: $(ASM)
 	@mkdir -p $(@D)
