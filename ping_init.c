@@ -41,7 +41,8 @@ int	ping_init(int *ac, char **av, t_ping *data)
 	// killswitch for unprivileged mode
 	if (!FLAG(ROOT_FLAG))
 	{
-		fprintf(stderr, "ping: socket: Operation not permitted\n");
+		// fprintf(stderr, "ping: socket: Operation not permitted\n");
+		fprintf(stderr, "ping: Lacking privilege for icmp socket.\n");
 		return (1);
 	}
 
